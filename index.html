@@ -15,7 +15,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; -webkit-tap-highlight-color: transparent; }
+        /* Base sólida y prevención de zoom */
+        html, body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden; /* Cierre estricto de scroll horizontal */
+            width: 100%;
+            max-width: 100vw;
+        }
+
         .hidden-view { display: none !important; }
         
         /* Animaciones fluidas */
@@ -36,16 +45,36 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        /* Evitar zoom en iOS al tocar inputs */
-        input, select, textarea { font-size: 16px !important; }
+        /* FIX CRÍTICO: Prevenir desbordamiento y zoom en móviles */
+        input, select, textarea { 
+            font-size: 16px !important; 
+            max-width: 100%; 
+            min-width: 0; /* Permite que el grid encoja el input si es necesario */
+        }
 
-        /* Fix: Prevenir desbordamiento horizontal en móviles (Grids e Inputs) */
-        body, main { overflow-x: hidden; width: 100%; max-width: 100vw; }
-        form.grid > div { min-width: 0; max-width: 100%; }
-        input, select { max-width: 100%; }
+        form.grid > div { 
+            min-width: 0; /* Previene que los items del grid rompan el contenedor */
+            width: 100%; 
+        }
+
+        /* FIX EXCLUSIVO PARA SAFARI/iOS: Fechas rompiendo layout */
+        input[type="date"] {
+            -webkit-appearance: none;
+            appearance: none;
+            min-width: 0;
+            width: 100%;
+            display: block;
+            background-color: #f8fafc; /* Color explícito para iOS */
+        }
+        input[type="date"]:focus { background-color: #ffffff; }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col overflow-x-hidden">
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar Global -->
+    <nav id="globalNav" class="bg-white border-b border-slate-200 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm hidden-view w-full">
+        <div class="flex items-center space-x-2 md:space-x-3">
+            <div class="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-md">
                 <i data-lucide="shield-check" class="w-5 h-5 md:w-6 md:h-6"></i>
             </div>
             <div>
@@ -84,11 +113,11 @@
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
-    <main class="flex-1 w-full max-w-7xl mx-auto relative pb-10">
+    <!-- MAIN APP CONTAINER (Sin overflows y manejando flex completo) -->
+    <main class="flex-1 w-full max-w-7xl mx-auto flex flex-col relative pb-10">
 
-        <!-- VIEW: Login Seguro -->
-        <div id="view-login" class="absolute inset-0 flex items-center justify-center p-4 min-h-[80vh] fade-in hidden-view">
+        <!-- VIEW: Login Seguro (Quitado el absolute inset-0 para mejor fluidez móvil) -->
+        <div id="view-login" class="flex-1 flex items-center justify-center p-4 min-h-[80vh] fade-in hidden-view w-full">
             <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl max-w-md w-full border border-slate-100 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div>
                 <div class="flex flex-col items-center mb-8 text-center mt-2">
@@ -105,17 +134,17 @@
                     <strong>PIN:</strong> 123456
                 </div>
 
-                <form id="loginForm" onsubmit="appState.login(event)" class="space-y-5">
-                    <div>
+                <form id="loginForm" onsubmit="appState.login(event)" class="space-y-5 w-full">
+                    <div class="w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 ml-1">Correo Electrónico</label>
-                        <div class="relative">
+                        <div class="relative w-full">
                             <i data-lucide="mail" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
                             <input type="email" id="loginEmail" required class="w-full pl-11 pr-4 py-3.5 md:py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 focus:ring-0 outline-none transition-colors bg-slate-50 focus:bg-white text-slate-800 font-medium" placeholder="correo@empresa.com">
                         </div>
                     </div>
-                    <div>
+                    <div class="w-full">
                         <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 ml-1">PIN de Seguridad</label>
-                        <div class="relative">
+                        <div class="relative w-full">
                             <i data-lucide="key-round" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
                             <input type="password" id="loginPin" required class="w-full pl-11 pr-4 py-3.5 md:py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 focus:ring-0 outline-none transition-colors bg-slate-50 focus:bg-white text-slate-800 font-medium" placeholder="••••••">
                         </div>
@@ -127,12 +156,12 @@
             </div>
         </div>
 
-        <!-- VIEW: Formulario Público del Empleado (Móvil Optimizado) -->
-        <div id="view-employee-form" class="hidden-view absolute inset-0 flex flex-col items-center p-3 sm:p-4 min-h-screen bg-slate-50 fade-in pb-20">
+        <!-- VIEW: Formulario Público del Empleado (Estricto sin desbordes) -->
+        <div id="view-employee-form" class="hidden-view flex flex-col items-center p-3 sm:p-4 min-h-screen bg-slate-50 fade-in pb-20 w-full">
             
             <div id="publicFormContainer" class="bg-white p-5 md:p-8 rounded-3xl shadow-xl max-w-3xl w-full border border-slate-200 relative overflow-hidden mt-4 md:mt-10">
                 <div class="absolute top-0 left-0 w-full h-2 md:h-3 bg-indigo-500"></div>
-                <div class="text-center mb-6 md:mb-8 mt-2">
+                <div class="text-center mb-6 md:mb-8 mt-2 w-full">
                     <div class="w-14 h-14 md:w-16 md:h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto text-indigo-600 mb-3 md:mb-4 shadow-inner">
                         <i data-lucide="clipboard-list" class="w-7 h-7 md:w-8 md:h-8"></i>
                     </div>
@@ -140,39 +169,40 @@
                     <p class="text-xs md:text-sm text-slate-500 mt-2 px-2">Diligencia tus datos. La información será encriptada y enviada a Recursos Humanos. <br><strong class="text-red-500">No podrás modificar los datos después de enviar.</strong></p>
                 </div>
 
-                <form id="publicEmployeeForm" onsubmit="appState.submitPublicForm(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 w-full">
+                <!-- Aseguramos que el form no empuje los bordes con w-full y max-w-full -->
+                <form id="publicEmployeeForm" onsubmit="appState.submitPublicForm(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 w-full max-w-full">
                     <input type="hidden" id="pubCompanyId">
                     
                     <!-- Info Personal -->
-                    <div class="col-span-full border-b border-slate-100 pb-2 mb-1">
+                    <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1">
                         <h3 class="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Info Personal</h3>
                     </div>
-                    <div>
+                    <div class="w-full">
                         <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Nombres *</label>
                         <input type="text" id="pubNombres" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Ej: Juan Carlos">
                     </div>
-                    <div>
+                    <div class="w-full">
                         <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Apellidos *</label>
                         <input type="text" id="pubApellidos" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Ej: Pérez Gómez">
                     </div>
-                    <div>
+                    <div class="w-full">
                         <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Cédula de Ciudadanía *</label>
                         <input type="number" id="pubCedula" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Sin puntos ni comas">
                     </div>
-                    <div>
+                    <div class="w-full">
                         <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Fecha de Nacimiento *</label>
                         <input type="date" id="pubCumple" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors">
                     </div>
 
                     <!-- Salud -->
-                    <div class="col-span-full border-b border-slate-100 pb-2 mb-1 mt-2">
+                    <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2">
                         <h3 class="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="heart-pulse" class="w-4 h-4"></i> Salud y Seguridad</h3>
                     </div>
-                    <div>
+                    <div class="w-full">
                         <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">EPS *</label>
                         <input type="text" id="pubEps" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Nombre de tu EPS">
                     </div>
-                    <div>
+                    <div class="w-full">
                         <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Tipo de Sangre *</label>
                         <select id="pubSangre" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors">
                             <option value="">Seleccione...</option>
@@ -184,35 +214,35 @@
                     </div>
 
                     <!-- Contacto -->
-                    <div class="col-span-full border-b border-slate-100 pb-2 mb-1 mt-2">
+                    <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2">
                         <h3 class="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i> Contacto</h3>
                     </div>
-                    <div>
+                    <div class="w-full">
                         <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Teléfono / Celular *</label>
                         <input type="tel" id="pubTel" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Ej: 3001234567">
                     </div>
-                    <div>
+                    <div class="w-full">
                         <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Correo Electrónico *</label>
                         <input type="email" id="pubCorreo" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="correo@ejemplo.com">
                     </div>
-                    <div class="col-span-full">
+                    <div class="col-span-1 md:col-span-2 w-full">
                         <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Dirección de Vivienda *</label>
                         <input type="text" id="pubDir" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Ej: Calle 123 # 45-67, Ciudad">
                     </div>
-                    <div class="col-span-full">
+                    <div class="col-span-1 md:col-span-2 w-full">
                         <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Contacto de Emergencia *</label>
                         <input type="text" id="pubEmergencia" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Nombre completo y número telefónico">
                     </div>
 
                     <!-- Subida de Documentos (PDF) -->
-                    <div class="col-span-full border-b border-slate-100 pb-2 mb-1 mt-2">
+                    <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2">
                         <h3 class="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="file-up" class="w-4 h-4"></i> Adjuntar Documentos</h3>
                         <p class="text-[10px] md:text-xs text-slate-500 mt-1 ml-6 font-medium">Solo archivos en formato PDF. Tamaño máximo por archivo: 500KB.</p>
                     </div>
                     
-                    <div class="col-span-full">
+                    <div class="col-span-1 md:col-span-2 w-full">
                         <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Documento de Identidad (PDF)</label>
-                        <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 bg-slate-50 hover:bg-slate-100 transition-colors text-center relative">
+                        <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 bg-slate-50 hover:bg-slate-100 transition-colors text-center relative w-full">
                             <input type="file" id="pubFileCedula" accept="application/pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                             <div class="flex flex-col items-center pointer-events-none">
                                 <i data-lucide="upload-cloud" class="w-8 h-8 text-indigo-400 mb-2"></i>
@@ -222,7 +252,7 @@
                         </div>
                     </div>
 
-                    <div class="col-span-full mt-6">
+                    <div class="col-span-1 md:col-span-2 mt-6 w-full">
                         <button type="submit" id="pubSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg py-4 px-4 rounded-xl shadow-xl shadow-indigo-200 transition-all flex justify-center items-center gap-2 active:scale-[0.98]">
                             Enviar y Bloquear Datos <i data-lucide="lock" class="w-5 h-5"></i>
                         </button>
@@ -245,7 +275,7 @@
 
         <!-- VIEW: Panel Super Admin -->
         <div id="view-superadmin" class="hidden-view p-4 md:p-8 w-full fade-in space-y-6">
-            <div class="bg-indigo-50 border-2 border-indigo-100 p-5 rounded-3xl flex items-start space-x-4 text-indigo-900 shadow-sm">
+            <div class="bg-indigo-50 border-2 border-indigo-100 p-5 rounded-3xl flex items-start space-x-4 text-indigo-900 shadow-sm w-full">
                 <i data-lucide="crown" class="w-8 h-8 md:w-10 md:h-10 flex-shrink-0 text-indigo-600"></i>
                 <div class="text-sm">
                     <strong class="block mb-1 text-base md:text-lg">Panel de Control Maestro</strong>
@@ -253,31 +283,31 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
                 <!-- Crear Empresa -->
-                <div class="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-200">
+                <div class="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-200 w-full">
                     <h2 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
                         <i data-lucide="building-2" class="w-5 h-5 text-indigo-500"></i> 1. Registrar Empresa
                     </h2>
-                    <form onsubmit="appState.createCompany(event)" class="space-y-4">
+                    <form onsubmit="appState.createCompany(event)" class="space-y-4 w-full">
                         <input type="text" id="newCompName" required placeholder="Nombre de la Empresa (Ej: Coca Cola)" class="w-full px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base font-medium">
                         <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 md:py-2.5 rounded-xl transition-colors">Crear Empresa</button>
                     </form>
                     
-                    <div class="mt-6">
+                    <div class="mt-6 w-full">
                         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Empresas Registradas</h3>
-                        <ul id="companiesList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <ul id="companiesList" class="space-y-2 max-h-48 overflow-y-auto pr-1 w-full">
                             <!-- JS Injects -->
                         </ul>
                     </div>
                 </div>
 
                 <!-- Crear Usuario Empresa -->
-                <div class="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-200">
+                <div class="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-200 w-full">
                     <h2 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
                         <i data-lucide="user-plus" class="w-5 h-5 text-emerald-500"></i> 2. Crear Acceso a Empresa
                     </h2>
-                    <form onsubmit="appState.createUser(event)" class="space-y-4">
+                    <form onsubmit="appState.createUser(event)" class="space-y-4 w-full">
                         <select id="newUserCompany" required class="w-full px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base font-medium bg-slate-50">
                             <option value="">Seleccione una Empresa...</option>
                             <!-- JS Injects -->
@@ -287,9 +317,9 @@
                         <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 md:py-2.5 rounded-xl transition-colors">Generar Usuario y Permisos</button>
                     </form>
 
-                    <div class="mt-6">
+                    <div class="mt-6 w-full">
                         <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Administradores Activos</h3>
-                        <ul id="usersList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <ul id="usersList" class="space-y-2 max-h-48 overflow-y-auto pr-1 w-full">
                             <!-- JS Injects -->
                         </ul>
                     </div>
@@ -300,16 +330,14 @@
         <!-- VIEW: Panel Empresa (Gestión de Personal) -->
         <div id="view-companyadmin" class="hidden-view p-3 md:p-6 lg:p-8 w-full fade-in space-y-4 md:space-y-6">
             
-            <!-- Cabecera de Acciones (Optimizada para Móvil) -->
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-sm border border-slate-200">
+            <!-- Cabecera de Acciones -->
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 w-full">
                 <div class="w-full lg:w-auto text-center lg:text-left border-b border-slate-100 lg:border-none pb-3 lg:pb-0">
                     <h2 class="text-xl md:text-2xl font-black text-slate-800">Gestión de Personal</h2>
                     <p class="text-xs md:text-sm text-slate-500 font-medium mt-1">Directorio exclusivo de tu empresa.</p>
                 </div>
                 
-                <!-- Grid de botones adaptable: 2 columnas en móvil, en línea en PC -->
                 <div class="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-3 w-full lg:w-auto">
-                    <!-- Botón Enlace Público (Toma todo el ancho en móvil) -->
                     <button onclick="appState.generateRegistrationLink()" class="col-span-2 md:col-span-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 md:py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 border border-indigo-200 active:scale-95">
                         <i data-lucide="link-2" class="w-5 h-5"></i> <span class="text-sm md:text-base">Enlace Público</span>
                     </button>
@@ -323,16 +351,15 @@
                         <i data-lucide="file-spreadsheet" class="w-4 h-4 md:w-5 md:h-5"></i> Subir Excel
                     </button>
                     
-                    <!-- Botón Principal (Toma todo el ancho en móvil) -->
                     <button onclick="ui.openEmployeeModal()" class="col-span-2 md:col-span-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 md:py-2.5 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
                         <i data-lucide="user-plus" class="w-5 h-5"></i> <span class="text-sm md:text-base">Nuevo Empleado</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Buscador -->
-            <div class="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="p-3 md:p-4 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <!-- Buscador y Tablas -->
+            <div class="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 overflow-hidden w-full">
+                <div class="p-3 md:p-4 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-3 w-full">
                     <div class="relative w-full sm:w-96">
                         <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
                         <input type="text" id="searchInput" onkeyup="appState.renderEmployees()" placeholder="Buscar por nombre o cédula..." class="w-full pl-10 pr-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm md:text-base bg-white">
@@ -342,16 +369,15 @@
                     </div>
                 </div>
 
-                <!-- Contenedor Dual: Vista Tarjetas (Móvil) y Vista Tabla (PC) -->
-                <div class="bg-slate-50 md:bg-white p-2 md:p-0">
+                <div class="bg-slate-50 md:bg-white p-2 md:p-0 w-full">
                     
-                    <!-- VISTA MÓVIL (Tarjetas de Contacto) -->
-                    <div id="employeesMobileList" class="md:hidden flex flex-col gap-3">
+                    <!-- VISTA MÓVIL -->
+                    <div id="employeesMobileList" class="md:hidden flex flex-col gap-3 w-full">
                         <!-- JS Inyecta Tarjetas Aquí -->
                     </div>
 
-                    <!-- VISTA PC (Tabla Clásica) -->
-                    <div class="hidden md:block overflow-x-auto">
+                    <!-- VISTA PC -->
+                    <div class="hidden md:block overflow-x-auto w-full">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-white text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
@@ -371,12 +397,11 @@
             </div>
         </div>
 
-        <!-- Modal Formulario Empleado (Estilo Bottom Sheet en Móvil) -->
+        <!-- Modal Formulario Empleado (Estilo Bottom Sheet ajustado) -->
         <div id="employeeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden-view flex items-end sm:items-center justify-center sm:p-4">
             
             <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-4xl h-[92vh] sm:h-auto sm:max-h-[95vh] flex flex-col overflow-hidden slide-up-mobile sm:fade-in relative pb-safe">
                 
-                <!-- Barra de arrastre visual para móvil -->
                 <div class="w-full flex justify-center pt-3 pb-1 sm:hidden">
                     <div class="w-12 h-1.5 bg-slate-200 rounded-full"></div>
                 </div>
@@ -387,39 +412,39 @@
                 </div>
                 
                 <div class="p-5 md:p-6 overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar w-full">
-                    <form id="employeeForm" onsubmit="appState.saveEmployee(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
+                    <form id="employeeForm" onsubmit="appState.saveEmployee(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-full">
                         <input type="hidden" id="empId">
                         
                         <!-- Info Personal -->
-                        <div class="col-span-full border-b border-slate-100 pb-2 mb-1">
+                        <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 w-full">
                             <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Info. Personal</h3>
                         </div>
-                        <div>
+                        <div class="w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Nombres</label>
                             <input type="text" id="empNombres" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Nombres">
                         </div>
-                        <div>
+                        <div class="w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Apellidos</label>
                             <input type="text" id="empApellidos" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Apellidos">
                         </div>
-                        <div>
+                        <div class="w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Cédula</label>
                             <input type="number" id="empCedula" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Sin puntos">
                         </div>
-                        <div>
+                        <div class="w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Fecha de Nacimiento</label>
                             <input type="date" id="empCumple" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white">
                         </div>
 
                         <!-- Salud -->
-                        <div class="col-span-full border-b border-slate-100 pb-2 mb-1 mt-2">
+                        <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2 w-full">
                             <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="heart-pulse" class="w-4 h-4"></i> Salud y Seguridad (Gestión ARL)</h3>
                         </div>
-                        <div>
+                        <div class="w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">EPS</label>
                             <input type="text" id="empEps" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Nombre EPS">
                         </div>
-                        <div>
+                        <div class="w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Tipo de Sangre</label>
                             <select id="empSangre" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white">
                                 <option value="">Seleccione...</option>
@@ -429,11 +454,11 @@
                                 <option value="AB+">AB Positivo (AB+)</option><option value="AB-">AB Negativo (AB-)</option>
                             </select>
                         </div>
-                        <div>
+                        <div class="w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Fecha Inicio ARL</label>
                             <input type="date" id="empArlFecha" class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white">
                         </div>
-                        <div>
+                        <div class="w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Duración ARL</label>
                             <select id="empArlDuracion" class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white">
                                 <option value="Indefinido" selected>Indefinido</option>
@@ -443,40 +468,39 @@
                         </div>
 
                         <!-- Contacto -->
-                        <div class="col-span-full border-b border-slate-100 pb-2 mb-1 mt-2">
+                        <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2 w-full">
                             <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i> Contacto</h3>
                         </div>
-                        <div>
+                        <div class="w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Teléfono Celular</label>
                             <input type="tel" id="empTel" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Celular">
                         </div>
-                        <div>
+                        <div class="w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Correo Electrónico</label>
                             <input type="email" id="empCorreo" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="correo@ejemplo.com">
                         </div>
-                        <div class="col-span-full">
+                        <div class="col-span-1 md:col-span-2 w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Dirección de Vivienda</label>
                             <input type="text" id="empDir" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Ej: Calle 123 # 45-67">
                         </div>
-                        <div class="col-span-full">
+                        <div class="col-span-1 md:col-span-2 w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Contacto de Emergencia</label>
                             <input type="text" id="empEmergencia" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Nombre y teléfono del acudiente">
                         </div>
 
                         <!-- Documentos PDF -->
-                        <div class="col-span-full border-b border-slate-100 pb-2 mb-1 mt-2">
+                        <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2 w-full">
                             <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="file-up" class="w-4 h-4"></i> Archivos PDF (Máx 500KB)</h3>
                         </div>
                         
-                        <!-- Inputs tipo archivo rediseñados -->
-                        <div class="col-span-full">
+                        <div class="col-span-1 md:col-span-2 w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Reemplazar Cédula (Opcional)</label>
                             <div class="relative w-full">
                                 <input type="file" id="empFileCedula" accept="application/pdf" class="w-full px-4 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-100 file:text-indigo-700 cursor-pointer">
                             </div>
                             <input type="hidden" id="empFileCedulaBase64">
                         </div>
-                        <div class="col-span-full">
+                        <div class="col-span-1 md:col-span-2 w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Subir Certificado ARL (RRHH)</label>
                             <div class="relative w-full">
                                 <input type="file" id="empFileArl" accept="application/pdf" class="w-full px-4 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 cursor-pointer">
@@ -485,7 +509,7 @@
                         </div>
 
                         <!-- Botones inferiores -->
-                        <div class="col-span-full flex flex-col-reverse md:flex-row justify-end gap-3 pt-6 pb-4 md:pb-0 mt-4 border-t border-slate-100">
+                        <div class="col-span-1 md:col-span-2 flex flex-col-reverse md:flex-row justify-end gap-3 pt-6 pb-4 md:pb-0 mt-4 border-t border-slate-100 w-full">
                             <button type="button" onclick="ui.closeEmployeeModal()" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors active:scale-95">Cancelar</button>
                             <button type="submit" id="saveEmployeeBtn" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 active:scale-95">Guardar Datos</button>
                         </div>
