@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProHR Secure - Gestión Empresarial</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS for Excel Reading/Writing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .hidden-view { display: none !important; }
+        
+        /* Animaciones fluidas */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .toast-enter { animation: slideInUp 0.3s ease-out forwards; }
+        .toast-exit { animation: slideOutDown 0.3s ease-in forwards; }
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideOutDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(100%); } }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar Global -->
+    <nav id="globalNav" class="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm hidden-view">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-black tracking-tight leading-none">ProHR <span class="text-indigo-600">Secure</span></h1>
+                <p id="navSubtitle" class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Portal</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div class="hidden md:block text-right mr-2">
+                <p id="navUserEmail" class="text-sm font-bold text-slate-700 leading-none">usuario@email.com</p>
+                <span id="navUserRole" class="inline-block mt-1 px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase tracking-wide">Rol</span>
+            </div>
+            <button onclick="appState.logout()" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Cerrar Sesión">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Contenedor de Notificaciones -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <!-- Modal de Confirmación UI -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden-view">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden fade-in">
+            <div class="p-6">
+                <div class="flex items-center space-x-3 mb-4 text-red-600">
+                    <div class="p-3 bg-red-100 rounded-full"><i data-lucide="alert-triangle" class="w-8 h-8"></i></div>
+                    <h2 id="confirmTitle" class="text-xl font-bold text-slate-800">Atención</h2>
+                </div>
+                <p id="confirmMessage" class="text-slate-600 font-medium leading-relaxed"></p>
+            </div>
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                <button onclick="ui.closeConfirm()" class="px-5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition-colors">Cancelar</button>
+                <button id="confirmBtn" class="px-5 py-2.5 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="flex-1 w-full max-w-7xl mx-auto relative">
+
+        <!-- VIEW: Login Seguro -->
+        <div id="view-login" class="absolute inset-0 flex items-center justify-center p-4 min-h-[80vh] fade-in hidden-view">
+            <div class="bg-white p-8 rounded-[2rem] shadow-2xl max-w-md w-full border border-slate-100 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div>
+                <div class="flex flex-col items-center mb-8 text-center mt-2">
+                    <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-indigo-600 mb-4 shadow-inner border border-slate-200">
+                        <i data-lucide="lock" class="w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800">Acceso Empresarial</h2>
+                    <p class="text-sm text-slate-500 font-medium mt-1">Ingresa tus credenciales asignadas</p>
+                </div>
+
+                <div id="adminNotice" class="hidden bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl mb-6 text-sm font-medium">
+                    <i data-lucide="info" class="w-4 h-4 inline mb-1 mr-1"></i> Se ha creado el acceso maestro automáticamente.<br>
+                    <strong>Correo:</strong> admin@admin.com<br>
+                    <strong>PIN:</strong> 123456
+                </div>
+
+                <form id="loginForm" onsubmit="appState.login(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 ml-1">Correo Electrónico</label>
+                        <div class="relative">
+                            <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                            <input type="email" id="loginEmail" required class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 focus:ring-0 outline-none transition-colors bg-slate-50 focus:bg-white text-slate-800 font-medium" placeholder="correo@empresa.com">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 ml-1">PIN de Seguridad</label>
+                        <div class="relative">
+                            <i data-lucide="key-round" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                            <input type="password" id="loginPin" required class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 focus:ring-0 outline-none transition-colors bg-slate-50 focus:bg-white text-slate-800 font-medium" placeholder="••••••">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-200 transition-all flex justify-center items-center gap-2 mt-6">
+                        Ingresar al Sistema <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- VIEW: Formulario Público del Empleado -->
+        <div id="view-employee-form" class="hidden-view absolute inset-0 flex flex-col items-center p-4 min-h-screen bg-slate-50 fade-in py-10">
+            
+            <div id="publicFormContainer" class="bg-white p-8 rounded-[2rem] shadow-xl max-w-3xl w-full border border-slate-200 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-3 bg-indigo-500"></div>
+                <div class="text-center mb-8 mt-4">
+                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto text-indigo-600 mb-4">
+                        <i data-lucide="clipboard-list" class="w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800">Formulario de Ingreso de Personal</h2>
+                    <p class="text-sm text-slate-500 mt-2">Por favor, diligencia todos tus datos. Al enviar, la información será encriptada y enviada a recursos humanos. <br><strong class="text-red-500">No podrás modificar los datos una vez enviados.</strong></p>
+                </div>
+
+                <form id="publicEmployeeForm" onsubmit="appState.submitPublicForm(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <input type="hidden" id="pubCompanyId">
+                    
+                    <!-- Info Personal -->
+                    <div class="col-span-full border-b border-slate-100 pb-2 mb-2">
+                        <h3 class="text-sm font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Información Personal</h3>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Nombres *</label>
+                        <input type="text" id="pubNombres" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Ej: Juan Carlos">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Apellidos *</label>
+                        <input type="text" id="pubApellidos" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Ej: Pérez Gómez">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Cédula de Ciudadanía *</label>
+                        <input type="number" id="pubCedula" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Sin puntos ni comas">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Fecha de Nacimiento *</label>
+                        <input type="date" id="pubCumple" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white">
+                    </div>
+
+                    <!-- Salud -->
+                    <div class="col-span-full border-b border-slate-100 pb-2 mb-2 mt-4">
+                        <h3 class="text-sm font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="heart-pulse" class="w-4 h-4"></i> Salud y Seguridad</h3>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">EPS *</label>
+                        <input type="text" id="pubEps" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Nombre de tu EPS">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Tipo de Sangre *</label>
+                        <select id="pubSangre" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white">
+                            <option value="">Seleccione...</option>
+                            <option value="O+">O Positivo (O+)</option><option value="O-">O Negativo (O-)</option>
+                            <option value="A+">A Positivo (A+)</option><option value="A-">A Negativo (A-)</option>
+                            <option value="B+">B Positivo (B+)</option><option value="B-">B Negativo (B-)</option>
+                            <option value="AB+">AB Positivo (AB+)</option><option value="AB-">AB Negativo (AB-)</option>
+                        </select>
+                    </div>
+
+                    <!-- Contacto -->
+                    <div class="col-span-full border-b border-slate-100 pb-2 mb-2 mt-4">
+                        <h3 class="text-sm font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i> Contacto</h3>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Teléfono / Celular *</label>
+                        <input type="tel" id="pubTel" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Ej: 3001234567">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Correo Electrónico *</label>
+                        <input type="email" id="pubCorreo" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="col-span-full">
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Dirección de Vivienda *</label>
+                        <input type="text" id="pubDir" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Ej: Calle 123 # 45-67, Ciudad">
+                    </div>
+                    <div class="col-span-full">
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Contacto de Emergencia *</label>
+                        <input type="text" id="pubEmergencia" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Nombre completo y número telefónico">
+                    </div>
+
+                    <!-- Subida de Documentos (PDF) -->
+                    <div class="col-span-full border-b border-slate-100 pb-2 mb-2 mt-4">
+                        <h3 class="text-sm font-bold text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="file-up" class="w-4 h-4"></i> Adjuntar Documentos</h3>
+                        <p class="text-xs text-slate-500 mt-1 ml-6">Solo archivos en formato PDF. Tamaño máximo por archivo: 500KB.</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Documento de Identidad (PDF)</label>
+                        <input type="file" id="pubFileCedula" accept="application/pdf" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Certificado de ARL (Opcional) (PDF)</label>
+                        <input type="file" id="pubFileArl" accept="application/pdf" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                    </div>
+
+                    <div class="col-span-full mt-6">
+                        <button type="submit" id="pubSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg py-4 px-4 rounded-xl shadow-xl shadow-indigo-200 transition-all flex justify-center items-center gap-2">
+                            Enviar y Bloquear Datos <i data-lucide="lock" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Pantalla de Éxito Público -->
+            <div id="publicSuccess" class="hidden-view bg-white p-8 rounded-[2rem] shadow-xl max-w-md w-full border border-slate-200 text-center relative overflow-hidden mt-10">
+                <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600 mb-6 border-4 border-white shadow-lg">
+                    <i data-lucide="check-circle" class="w-10 h-10"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-800 mb-2">¡Datos Enviados!</h2>
+                <p class="text-slate-600 mb-6">Tu información ha sido registrada exitosamente en el sistema de la empresa. Por motivos de seguridad, los datos han sido bloqueados y no pueden ser modificados desde este enlace.</p>
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm font-bold text-slate-500">
+                    Puedes cerrar esta ventana.
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: Panel Super Admin -->
+        <div id="view-superadmin" class="hidden-view p-4 md:p-8 w-full fade-in space-y-6">
+            <div class="bg-indigo-50 border-2 border-indigo-100 p-5 rounded-2xl flex items-start space-x-4 text-indigo-900 shadow-sm">
+                <i data-lucide="crown" class="w-8 h-8 flex-shrink-0 text-indigo-600"></i>
+                <div class="text-sm">
+                    <strong class="block mb-1 text-base">Panel de Control Maestro</strong>
+                    <p class="font-medium">Desde aquí puedes crear empresas (clientes) y asignarles un usuario administrador. Los datos de cada empresa están estrictamente separados.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Crear Empresa -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+                        <i data-lucide="building-2" class="w-5 h-5 text-indigo-500"></i> 1. Registrar Empresa
+                    </h2>
+                    <form onsubmit="appState.createCompany(event)" class="space-y-4">
+                        <input type="text" id="newCompName" required placeholder="Nombre de la Empresa (Ej: Coca Cola)" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm font-medium">
+                        <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 rounded-xl transition-colors">Crear Empresa</button>
+                    </form>
+                    
+                    <div class="mt-6">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Empresas Registradas</h3>
+                        <ul id="companiesList" class="space-y-2 max-h-40 overflow-y-auto">
+                            <!-- JS Injects -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Crear Usuario Empresa -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+                        <i data-lucide="user-plus" class="w-5 h-5 text-emerald-500"></i> 2. Crear Acceso a Empresa
+                    </h2>
+                    <form onsubmit="appState.createUser(event)" class="space-y-4">
+                        <select id="newUserCompany" required class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm font-medium bg-slate-50">
+                            <option value="">Seleccione una Empresa...</option>
+                            <!-- JS Injects -->
+                        </select>
+                        <input type="email" id="newUserEmail" required placeholder="Correo (Ej: rh@empresa.com)" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm font-medium">
+                        <input type="text" id="newUserPin" required placeholder="PIN Numérico (Ej: 1234)" pattern="\d+" title="Solo números" class="w-full px-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm font-medium">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition-colors">Generar Usuario y Permisos</button>
+                    </form>
+
+                    <div class="mt-6">
+                        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Administradores Activos</h3>
+                        <ul id="usersList" class="space-y-2 max-h-40 overflow-y-auto">
+                            <!-- JS Injects -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW: Panel Empresa (Gestión de Personal) -->
+        <div id="view-companyadmin" class="hidden-view p-4 md:p-8 w-full fade-in space-y-6">
+            
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-800">Gestión de Personal</h2>
+                    <p class="text-slate-500 font-medium mt-1">Directorio encriptado. Solo visible para tu empresa.</p>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="appState.generateRegistrationLink()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-2 border border-indigo-200" title="Link para que el empleado llene sus datos">
+                        <i data-lucide="link-2" class="w-5 h-5"></i> Enlace para Empleados
+                    </button>
+                    <button onclick="appState.downloadExcelTemplate()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center gap-2 border border-slate-200" title="Descargar plantilla para llenar">
+                        <i data-lucide="download" class="w-5 h-5 text-emerald-600"></i> Plantilla Excel
+                    </button>
+                    <input type="file" id="excelUpload" accept=".xlsx, .xls, .csv" class="hidden-view" onchange="appState.handleExcelUpload(event)">
+                    <button onclick="document.getElementById('excelUpload').click()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl shadow-md transition-all flex items-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5"></i> Subir Excel
+                    </button>
+                    <button onclick="ui.openEmployeeModal()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition-all flex items-center gap-2">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i> Nuevo Empleado
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="relative w-full sm:w-96">
+                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                        <input type="text" id="searchInput" onkeyup="appState.renderEmployees()" placeholder="Buscar por nombre o cédula..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-1 outline-none text-sm">
+                    </div>
+                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm" id="empCount">
+                        0 Registros
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-4 font-bold whitespace-nowrap">Empleado / ID</th>
+                                <th class="p-4 font-bold whitespace-nowrap">Contacto</th>
+                                <th class="p-4 font-bold whitespace-nowrap">Salud / ARL</th>
+                                <th class="p-4 font-bold text-center whitespace-nowrap">Documentos (PDF)</th>
+                                <th class="p-4 font-bold text-right whitespace-nowrap">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeesTableBody" class="divide-y divide-slate-100 bg-white">
+                            <!-- JS Injects Employees -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal Formulario Empleado (Vista Admin) -->
+        <div id="employeeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden-view items-center justify-center p-4">
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden fade-in">
+                <div class="px-6 py-4 border-b flex justify-between items-center bg-slate-50">
+                    <h2 id="empModalTitle" class="text-xl font-bold text-slate-800">Registrar Empleado</h2>
+                    <button onclick="ui.closeEmployeeModal()" class="text-slate-400 hover:text-red-500 p-1 rounded-lg hover:bg-red-50"><i data-lucide="x" class="w-6 h-6"></i></button>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1 custom-scrollbar">
+                    <form id="employeeForm" onsubmit="appState.saveEmployee(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <input type="hidden" id="empId">
+                        
+                        <!-- Info Personal -->
+                        <div class="col-span-full border-b border-slate-100 pb-2 mb-2">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Info. Personal</h3>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Nombres</label>
+                            <input type="text" id="empNombres" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Nombres">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Apellidos</label>
+                            <input type="text" id="empApellidos" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Apellidos">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Cédula</label>
+                            <input type="number" id="empCedula" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Sin puntos">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Fecha de Nacimiento</label>
+                            <input type="date" id="empCumple" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white">
+                        </div>
+
+                        <!-- Salud -->
+                        <div class="col-span-full border-b border-slate-100 pb-2 mb-2 mt-2">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="heart-pulse" class="w-4 h-4"></i> Salud y Seguridad</h3>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">EPS</label>
+                            <input type="text" id="empEps" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Nombre EPS">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Tipo de Sangre</label>
+                            <select id="empSangre" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white">
+                                <option value="">Seleccione...</option>
+                                <option value="O+">O Positivo (O+)</option><option value="O-">O Negativo (O-)</option>
+                                <option value="A+">A Positivo (A+)</option><option value="A-">A Negativo (A-)</option>
+                                <option value="B+">B Positivo (B+)</option><option value="B-">B Negativo (B-)</option>
+                                <option value="AB+">AB Positivo (AB+)</option><option value="AB-">AB Negativo (AB-)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Fecha Inicio ARL</label>
+                            <input type="date" id="empArlFecha" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Duración ARL</label>
+                            <select id="empArlDuracion" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white">
+                                <option value="Indefinido" selected>Indefinido</option>
+                                <option value="15 Días">15 Días</option>
+                                <option value="1 Mes">1 Mes</option>
+                            </select>
+                        </div>
+
+                        <!-- Contacto -->
+                        <div class="col-span-full border-b border-slate-100 pb-2 mb-2 mt-2">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i> Contacto</h3>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Teléfono</label>
+                            <input type="tel" id="empTel" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Celular">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Correo Electrónico</label>
+                            <input type="email" id="empCorreo" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="col-span-full">
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Dirección de Vivienda</label>
+                            <input type="text" id="empDir" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Ej: Calle 123 # 45-67">
+                        </div>
+                        <div class="col-span-full">
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Contacto de Emergencia</label>
+                            <input type="text" id="empEmergencia" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 focus:bg-white" placeholder="Nombre y teléfono del acudiente">
+                        </div>
+
+                        <!-- Documentos PDF -->
+                        <div class="col-span-full border-b border-slate-100 pb-2 mb-2 mt-2">
+                            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="file-up" class="w-4 h-4"></i> Archivos PDF (Opcional, Máx 500KB c/u)</h3>
+                        </div>
+                        <div class="col-span-full">
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Subir Documento (Cédula)</label>
+                            <input type="file" id="empFileCedula" accept="application/pdf" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                            <!-- Helper para mantener archivos previos si no se sube uno nuevo -->
+                            <input type="hidden" id="empFileCedulaBase64">
+                        </div>
+                        <div class="col-span-full">
+                            <label class="block text-xs font-bold text-slate-700 ml-1 mb-1">Subir Certificado ARL</label>
+                            <input type="file" id="empFileArl" accept="application/pdf" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none text-sm bg-slate-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                            <input type="hidden" id="empFileArlBase64">
+                        </div>
+
+                        <div class="col-span-full flex justify-end gap-3 pt-4 border-t border-slate-100 mt-4">
+                            <button type="button" onclick="ui.closeEmployeeModal()" class="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors">Cancelar</button>
+                            <button type="submit" id="saveEmployeeBtn" class="px-6 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-md">Guardar Datos</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // =========================================================
+        // ⚠️ ATENCIÓN: CONFIGURACIÓN DE TU BASE DE DATOS FIREBASE
+        // =========================================================
+        const fbConfigObj = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyC4xLdSmI4iPZIlzbvBjAi6NBLK0Hjmezo",
+            authDomain: "rr-hh-eqbito.firebaseapp.com",
+            projectId: "rr-hh-eqbito",
+            storageBucket: "rr-hh-eqbito.firebasestorage.app",
+            messagingSenderId: "832472689607",
+            appId: "1:832472689607:web:188e1b5b4067a07329c7e2"
+        };
+
+        const app = initializeApp(fbConfigObj);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'rrhh-pro-vanilla';
+
+        window.appData = {
+            currentUser: null,
+            companies: [],
+            users: [],
+            employees: []
+        };
+
+        window.ui = {
+            show: (id) => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.classList.remove('hidden-view');
+                    if(id.startsWith('view-') && id !== 'view-employee-form') el.style.display = 'block';
+                }
+            },
+            hide: (id) => {
+                const el = document.getElementById(id);
+                if(el) {
+                    el.classList.add('hidden-view');
+                    if(id.startsWith('view-') && id !== 'view-employee-form') el.style.display = 'none';
+                }
+            },
+            toast: (msg, type = 'success') => {
+                const toast = document.createElement('div');
+                let bgColor = type === 'error' ? 'bg-red-600' : type === 'info' ? 'bg-blue-600' : 'bg-emerald-600';
+                let icon = type === 'error' ? 'alert-circle' : type === 'info' ? 'info' : 'check-circle-2';
+                toast.className = `flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl text-white font-bold text-sm toast-enter ${bgColor}`;
+                toast.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i><span>${msg}</span>`;
+                document.getElementById('toastContainer').appendChild(toast);
+                lucide.createIcons({ root: toast });
+                setTimeout(() => {
+                    toast.classList.replace('toast-enter', 'toast-exit');
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
+            },
+            openConfirm: (title, message, onConfirm) => {
+                document.getElementById('confirmTitle').innerText = title;
+                document.getElementById('confirmMessage').innerText = message;
+                const btn = document.getElementById('confirmBtn');
+                btn.onclick = () => { onConfirm(); ui.closeConfirm(); };
+                ui.show('confirmModal');
+                document.getElementById('confirmModal').style.display = 'flex';
+            },
+            closeConfirm: () => { ui.hide('confirmModal'); },
+            openEmployeeModal: (emp = null) => {
+                document.getElementById('employeeForm').reset();
+                document.getElementById('empId').value = '';
+                document.getElementById('empFileCedulaBase64').value = '';
+                document.getElementById('empFileArlBase64').value = '';
+                document.getElementById('empModalTitle').innerText = emp ? 'Editar Empleado' : 'Registrar Empleado';
+                
+                if(emp) {
+                    document.getElementById('empId').value = emp.id;
+                    document.getElementById('empNombres').value = emp.nombres;
+                    document.getElementById('empApellidos').value = emp.apellidos;
+                    document.getElementById('empCedula').value = emp.cedula;
+                    document.getElementById('empCumple').value = emp.cumpleanos;
+                    document.getElementById('empEps').value = emp.eps;
+                    document.getElementById('empSangre').value = emp.tipoSangre;
+                    document.getElementById('empArlFecha').value = emp.fechaArl || '';
+                    document.getElementById('empArlDuracion').value = emp.duracionArl || 'Indefinido';
+                    document.getElementById('empTel').value = emp.telefono;
+                    document.getElementById('empCorreo').value = emp.correo;
+                    document.getElementById('empDir').value = emp.direccion;
+                    document.getElementById('empEmergencia').value = emp.contactoEmergencia;
+                    if(emp.fileCedula) document.getElementById('empFileCedulaBase64').value = emp.fileCedula;
+                    if(emp.fileArl) document.getElementById('empFileArlBase64').value = emp.fileArl;
+                }
+                ui.show('employeeModal');
+                document.getElementById('employeeModal').style.display = 'flex';
+            },
+            closeEmployeeModal: () => ui.hide('employeeModal')
+        };
+
+        const fileToBase64 = (file) => new Promise((resolve, reject) => {
+            if (!file) return resolve(null);
+            if (file.size > 500000) return reject('El archivo es muy pesado. Máximo 500KB por PDF.');
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        window.appState = {
+            init: async () => {
+                lucide.createIcons();
+                ui.hide('globalNav');
+                
+                // Autenticación Silenciosa Segura
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (err) {
+                    console.error("Error de Firebase Auth:", err);
+                    if(fbConfigObj.apiKey === "TU_API_KEY_AQUI") {
+                        return ui.toast("⚠️ Falta conectar tu propia base de datos Firebase.", "error");
+                    }
+                    return ui.toast("Error de conexión: " + err.message, "error");
+                }
+
+                // ROUTER
+                const urlParams = new URLSearchParams(window.location.search);
+                const publicCompanyId = urlParams.get('form');
+
+                if(publicCompanyId) {
+                    ui.hide('view-login');
+                    ui.show('view-employee-form');
+                    document.getElementById('pubCompanyId').value = publicCompanyId;
+                    return; 
+                }
+
+                ui.show('view-login');
+
+                // DB Listeners
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'companies'), snap => {
+                    appData.companies = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    if(appData.currentUser?.role === 'SUPER_ADMIN') appState.renderSuperAdmin();
+                });
+
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), async snap => {
+                    appData.users = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    if(appData.users.length === 0) {
+                        try {
+                            const superAdminData = { id: 'admin@admin.com', email: 'admin@admin.com', pin: '123456', role: 'SUPER_ADMIN' };
+                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', superAdminData.id), superAdminData);
+                            document.getElementById('adminNotice').classList.remove('hidden');
+                            document.getElementById('loginEmail').value = 'admin@admin.com';
+                            document.getElementById('loginPin').value = '123456';
+                        } catch(e) {}
+                    }
+                    if(appData.currentUser?.role === 'SUPER_ADMIN') appState.renderSuperAdmin();
+                });
+
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'employees'), snap => {
+                    appData.employees = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                    if(appData.currentUser?.role === 'COMPANY_ADMIN') appState.renderEmployees();
+                });
+            },
+
+            // --- LÓGICA DEL FORMULARIO PÚBLICO DEL EMPLEADO ---
+            submitPublicForm: async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('pubSubmitBtn');
+                btn.disabled = true;
+                btn.innerHTML = 'Enviando Datos... <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
+                lucide.createIcons();
+
+                try {
+                    const compId = document.getElementById('pubCompanyId').value;
+                    const cc = document.getElementById('pubCedula').value.trim();
+                    const id = `emp_${Date.now()}_${cc}`;
+
+                    const fCedula = document.getElementById('pubFileCedula').files[0];
+                    const fArl = document.getElementById('pubFileArl').files[0];
+
+                    const base64Cedula = await fileToBase64(fCedula);
+                    const base64Arl = await fileToBase64(fArl);
+
+                    const data = {
+                        companyId: compId,
+                        nombres: document.getElementById('pubNombres').value.trim(),
+                        apellidos: document.getElementById('pubApellidos').value.trim(),
+                        cedula: cc,
+                        cumpleanos: document.getElementById('pubCumple').value,
+                        eps: document.getElementById('pubEps').value.trim(),
+                        tipoSangre: document.getElementById('pubSangre').value,
+                        fechaArl: '',
+                        duracionArl: 'Indefinido',
+                        telefono: document.getElementById('pubTel').value.trim(),
+                        correo: document.getElementById('pubCorreo').value.trim(),
+                        direccion: document.getElementById('pubDir').value.trim(),
+                        contactoEmergencia: document.getElementById('pubEmergencia').value.trim(),
+                        fileCedula: base64Cedula || '',
+                        fileArl: base64Arl || ''
+                    };
+
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), data);
+                    
+                    document.getElementById('publicFormContainer').classList.add('hidden-view');
+                    document.getElementById('publicSuccess').classList.remove('hidden-view');
+                } catch(error) {
+                    ui.toast(error.toString(), "error");
+                    btn.disabled = false;
+                    btn.innerHTML = 'Reintentar Envío <i data-lucide="lock" class="w-5 h-5"></i>';
+                    lucide.createIcons();
+                }
+            },
+
+            // --- LÓGICA DE LOGIN ---
+            login: (e) => {
+                e.preventDefault();
+                const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+                const pin = document.getElementById('loginPin').value.trim();
+
+                const user = appData.users.find(u => u.email === email && u.pin === pin);
+                if (!user) return ui.toast('Credenciales incorrectas', 'error');
+
+                appData.currentUser = user;
+                ui.hide('view-login');
+                ui.show('globalNav');
+                document.getElementById('navUserEmail').innerText = user.email;
+
+                if (user.role === 'SUPER_ADMIN') {
+                    document.getElementById('navUserRole').innerText = 'SUPER ADMIN';
+                    document.getElementById('navSubtitle').innerText = 'Panel Maestro';
+                    ui.show('view-superadmin');
+                    appState.renderSuperAdmin();
+                    ui.toast('Bienvenido, Super Administrador');
+                } else if (user.role === 'COMPANY_ADMIN') {
+                    const comp = appData.companies.find(c => c.id === user.companyId);
+                    document.getElementById('navUserRole').innerText = 'ADMIN EMPRESA';
+                    document.getElementById('navSubtitle').innerText = comp ? comp.name : 'Portal Empresarial';
+                    ui.show('view-companyadmin');
+                    appState.renderEmployees();
+                    ui.toast(`Sesión iniciada: ${comp?.name || 'Empresa'}`);
+                }
+            },
+
+            logout: () => {
+                appData.currentUser = null;
+                document.getElementById('loginForm').reset();
+                ui.hide('globalNav');
+                ui.hide('view-superadmin');
+                ui.hide('view-companyadmin');
+                ui.show('view-login');
+                ui.toast('Sesión cerrada de forma segura');
+            },
+
+            // --- SUPER ADMIN LOGIC ---
+            createCompany: async (e) => {
+                e.preventDefault();
+                const name = document.getElementById('newCompName').value.trim();
+                const id = `comp_${Date.now()}`;
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'companies', id), { name });
+                document.getElementById('newCompName').value = '';
+                ui.toast('Empresa creada con éxito');
+            },
+
+            createUser: async (e) => {
+                e.preventDefault();
+                const compId = document.getElementById('newUserCompany').value;
+                const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
+                const pin = document.getElementById('newUserPin').value.trim();
+
+                if(appData.users.find(u => u.email === email)) return ui.toast('El correo ya existe', 'error');
+
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', email), {
+                    email, pin, role: 'COMPANY_ADMIN', companyId: compId
+                });
+                
+                document.getElementById('newUserEmail').value = '';
+                document.getElementById('newUserPin').value = '';
+                ui.toast('Usuario administrador creado');
+            },
+
+            renderSuperAdmin: () => {
+                const compHtml = appData.companies.map(c => `
+                    <li class="p-3 bg-slate-50 border border-slate-100 rounded-xl flex justify-between items-center text-sm">
+                        <span class="font-bold text-slate-700"><i data-lucide="building" class="w-4 h-4 inline mr-2 text-slate-400"></i>${c.name}</span>
+                        <span class="text-[10px] text-slate-400 font-mono bg-white px-2 py-1 rounded border">${c.id.substring(0,8)}</span>
+                    </li>
+                `).join('') || '<li class="text-sm text-slate-400 p-2">No hay empresas.</li>';
+                document.getElementById('companiesList').innerHTML = compHtml;
+
+                const optsHtml = '<option value="">Seleccione una Empresa...</option>' + 
+                    appData.companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                document.getElementById('newUserCompany').innerHTML = optsHtml;
+
+                const usersHtml = appData.users.filter(u => u.role === 'COMPANY_ADMIN').map(u => {
+                    const compName = appData.companies.find(c => c.id === u.companyId)?.name || 'Desconocida';
+                    return `
+                    <li class="p-3 bg-slate-50 border border-slate-100 rounded-xl flex justify-between items-center text-sm">
+                        <div>
+                            <div class="font-bold text-slate-700">${u.email}</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5"><i data-lucide="building" class="w-3 h-3 inline mr-1"></i>${compName}</div>
+                        </div>
+                        <div class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-mono text-xs font-bold" title="PIN de acceso">${u.pin}</div>
+                    </li>`;
+                }).join('') || '<li class="text-sm text-slate-400 p-2">No hay administradores.</li>';
+                document.getElementById('usersList').innerHTML = usersHtml;
+                lucide.createIcons();
+            },
+
+            // --- COMPANY ADMIN LOGIC ---
+            generateRegistrationLink: () => {
+                if(!appData.currentUser || !appData.currentUser.companyId) return;
+                const link = `${window.location.origin}${window.location.pathname}?form=${appData.currentUser.companyId}`;
+                
+                navigator.clipboard.writeText(link).then(() => {
+                    ui.toast("Enlace copiado al portapapeles. ¡Envíalo a tus empleados!");
+                }).catch(() => {
+                    prompt("Copia este enlace y envíalo a tus empleados:", link);
+                });
+            },
+
+            saveEmployee: async (e) => {
+                e.preventDefault();
+                if(!appData.currentUser || !appData.currentUser.companyId) return;
+                const btn = document.getElementById('saveEmployeeBtn');
+                btn.disabled = true;
+
+                try {
+                    const id = document.getElementById('empId').value || `emp_${Date.now()}`;
+                    
+                    const fCedula = document.getElementById('empFileCedula').files[0];
+                    const fArl = document.getElementById('empFileArl').files[0];
+                    
+                    let base64Cedula = document.getElementById('empFileCedulaBase64').value; 
+                    let base64Arl = document.getElementById('empFileArlBase64').value;
+
+                    if(fCedula) base64Cedula = await fileToBase64(fCedula);
+                    if(fArl) base64Arl = await fileToBase64(fArl);
+
+                    const data = {
+                        companyId: appData.currentUser.companyId,
+                        nombres: document.getElementById('empNombres').value.trim(),
+                        apellidos: document.getElementById('empApellidos').value.trim(),
+                        cedula: document.getElementById('empCedula').value.trim(),
+                        cumpleanos: document.getElementById('empCumple').value,
+                        eps: document.getElementById('empEps').value.trim(),
+                        tipoSangre: document.getElementById('empSangre').value,
+                        fechaArl: document.getElementById('empArlFecha').value,
+                        duracionArl: document.getElementById('empArlDuracion').value,
+                        telefono: document.getElementById('empTel').value.trim(),
+                        correo: document.getElementById('empCorreo').value.trim(),
+                        direccion: document.getElementById('empDir').value.trim(),
+                        contactoEmergencia: document.getElementById('empEmergencia').value.trim(),
+                        fileCedula: base64Cedula || '',
+                        fileArl: base64Arl || ''
+                    };
+
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), data);
+                    ui.closeEmployeeModal();
+                    ui.toast('Expediente guardado exitosamente');
+                } catch(err) {
+                    ui.toast(err.toString(), "error");
+                } finally {
+                    btn.disabled = false;
+                }
+            },
+
+            deleteEmployee: (id) => {
+                ui.openConfirm("Borrar Expediente", "Esta acción eliminará permanentemente al empleado. ¿Continuar?", async () => {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id));
+                    ui.toast("Expediente eliminado");
+                });
+            },
+
+            renderEmployees: () => {
+                if(!appData.currentUser) return;
+                const search = document.getElementById('searchInput').value.toLowerCase();
+                
+                const myEmps = appData.employees.filter(e => 
+                    e.companyId === appData.currentUser.companyId &&
+                    (e.nombres.toLowerCase().includes(search) || e.cedula.includes(search))
+                );
+
+                document.getElementById('empCount').innerText = `${myEmps.length} Registros`;
+
+                const html = myEmps.map(emp => `
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                        <td class="p-4">
+                            <div class="font-bold text-slate-800">${emp.nombres} ${emp.apellidos}</div>
+                            <div class="text-xs text-slate-500 font-mono mt-1">CC: ${emp.cedula}</div>
+                            <div class="text-xs text-slate-400 mt-1"><i data-lucide="cake" class="w-3 h-3 inline"></i> ${emp.cumpleanos}</div>
+                        </td>
+                        <td class="p-4">
+                            <div class="text-sm text-slate-600 mb-1 flex items-center"><i data-lucide="phone" class="w-3 h-3 mr-2 text-slate-400"></i> ${emp.telefono}</div>
+                            <div class="text-xs text-slate-500 flex items-center"><i data-lucide="mail" class="w-3 h-3 mr-2 text-slate-400"></i> ${emp.correo}</div>
+                            <div class="text-[10px] text-slate-400 mt-1 uppercase truncate max-w-[150px]" title="${emp.direccion}">${emp.direccion}</div>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex gap-2 mb-2">
+                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-xs font-bold border border-emerald-200">${emp.eps}</span>
+                                <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-bold border border-red-200">RH: ${emp.tipoSangre}</span>
+                            </div>
+                            <div class="text-[11px] font-semibold text-slate-500">
+                                <i data-lucide="shield" class="w-3 h-3 inline mr-1 text-slate-400"></i>ARL: ${emp.fechaArl || 'Sin Asignar'} (${emp.duracionArl})
+                            </div>
+                        </td>
+                        <td class="p-4 text-center">
+                            <div class="flex justify-center gap-3">
+                                ${emp.fileCedula ? `
+                                <a href="${emp.fileCedula}" download="Cedula_${emp.cedula}.pdf" title="Descargar Cédula" class="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-100 shadow-sm">
+                                    <i data-lucide="id-card" class="w-5 h-5"></i>
+                                </a>` : `<div class="p-2 bg-slate-50 text-slate-300 rounded-lg border border-slate-100"><i data-lucide="id-card" class="w-5 h-5"></i></div>`}
+                                
+                                ${emp.fileArl ? `
+                                <a href="${emp.fileArl}" download="ARL_${emp.cedula}.pdf" title="Descargar ARL" class="p-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors border border-emerald-100 shadow-sm">
+                                    <i data-lucide="file-check-2" class="w-5 h-5"></i>
+                                </a>` : `<div class="p-2 bg-slate-50 text-slate-300 rounded-lg border border-slate-100"><i data-lucide="file-check-2" class="w-5 h-5"></i></div>`}
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick='appState.editEmployee(${JSON.stringify(emp).replace(/'/g, "&#39;")})' class="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                                <button onclick="appState.deleteEmployee('${emp.id}')" class="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                document.getElementById('employeesTableBody').innerHTML = html || '<tr><td colSpan="5" class="p-12 text-center text-slate-400 font-medium bg-slate-50">No hay empleados. Envíales el enlace o usa un Excel.</td></tr>';
+                lucide.createIcons();
+            },
+
+            downloadExcelTemplate: () => {
+                const headers = ["Nombres", "Apellidos", "Cedula", "Cumpleanos", "EPS", "Tipo_Sangre", "Telefono", "Correo", "Direccion", "Emergencia"];
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet([headers]);
+                ws['!cols'] = Array(headers.length).fill({ wch: 20 });
+                XLSX.utils.book_append_sheet(wb, ws, "Plantilla_Estricta");
+                XLSX.writeFile(wb, "Plantilla_ProHR.xlsx");
+            },
+
+            handleExcelUpload: async (e) => {
+                const file = e.target.files[0];
+                if(!file || !appData.currentUser?.companyId) return;
+
+                ui.toast("Procesando Excel estrictamente...", "info");
+                const reader = new FileReader();
+                
+                reader.onload = async (evt) => {
+                    try {
+                        const data = new Uint8Array(evt.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                        
+                        const json = XLSX.utils.sheet_to_json(worksheet, {header: 1}); 
+
+                        if(json.length <= 1) return ui.toast("El Excel no tiene datos", "error");
+
+                        let count = 0;
+                        const fmtDate = (d) => {
+                            if(!d) return "";
+                            if(typeof d === 'string' && d.includes('/')) {
+                                let p = d.split('/');
+                                if(p.length === 3 && p[2].length === 4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+                            }
+                            return d;
+                        };
+
+                        for(let i = 1; i < json.length; i++) {
+                            const row = json[i];
+                            if(!row || row.length === 0 || !row[0]) continue; 
+
+                            const nom = row[0]; 
+                            const cc = row[2];  
+
+                            if(nom && cc) {
+                                const id = `emp_${Date.now()}_${cc}`;
+                                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), {
+                                    companyId: appData.currentUser.companyId,
+                                    nombres: nom ? String(nom).trim() : '',
+                                    apellidos: row[1] ? String(row[1]).trim() : '',
+                                    cedula: String(cc).trim(),
+                                    cumpleanos: fmtDate(row[3]),
+                                    eps: row[4] ? String(row[4]).trim() : '',
+                                    tipoSangre: row[5] ? String(row[5]).trim() : '',
+                                    fechaArl: '', 
+                                    duracionArl: 'Indefinido',
+                                    telefono: row[6] ? String(row[6]).trim() : '',
+                                    correo: row[7] ? String(row[7]).trim() : '',
+                                    direccion: row[8] ? String(row[8]).trim() : '',
+                                    contactoEmergencia: row[9] ? String(row[9]).trim() : '',
+                                    fileCedula: '',
+                                    fileArl: ''
+                                });
+                                count++;
+                            }
+                        }
+                        ui.toast(`¡Éxito! ${count} empleados importados.`, "success");
+                    } catch(err) {
+                        console.error(err);
+                        ui.toast("Error leyendo el documento", "error");
+                    } finally {
+                        e.target.value = ''; 
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        };
+
+        window.onload = () => appState.init();
+    </script>
+</body>
+</html>
