@@ -20,7 +20,7 @@
             font-family: 'Inter', sans-serif; 
             background-color: #f8fafc; 
             -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden; /* Cierre estricto de scroll horizontal */
+            overflow-x: hidden; 
             width: 100%;
             max-width: 100vw;
         }
@@ -49,11 +49,11 @@
         input, select, textarea { 
             font-size: 16px !important; 
             max-width: 100%; 
-            min-width: 0; /* Permite que el grid encoja el input si es necesario */
+            min-width: 0; 
         }
 
         form.grid > div { 
-            min-width: 0; /* Previene que los items del grid rompan el contenedor */
+            min-width: 0; 
             width: 100%; 
         }
 
@@ -64,9 +64,15 @@
             min-width: 0;
             width: 100%;
             display: block;
-            background-color: #f8fafc; /* Color explícito para iOS */
+            background-color: #f8fafc; 
         }
         input[type="date"]:focus { background-color: #ffffff; }
+
+        /* Estilos para el Avatar/Foto de Perfil */
+        .avatar-upload-wrapper { position: relative; width: 100px; height: 100px; margin: 0 auto; border-radius: 50%; border: 3px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; background-color: #f8fafc; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+        .avatar-upload-wrapper:hover { border-color: #818cf8; background-color: #e0e7ff; }
+        .avatar-upload-wrapper img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; }
+        .avatar-upload-wrapper input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 20; }
     </style>
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
@@ -113,10 +119,10 @@
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER (Sin overflows y manejando flex completo) -->
+    <!-- MAIN APP CONTAINER -->
     <main class="flex-1 w-full max-w-7xl mx-auto flex flex-col relative pb-10">
 
-        <!-- VIEW: Login Seguro (Quitado el absolute inset-0 para mejor fluidez móvil) -->
+        <!-- VIEW: Login Seguro -->
         <div id="view-login" class="flex-1 flex items-center justify-center p-4 min-h-[80vh] fade-in hidden-view w-full">
             <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl max-w-md w-full border border-slate-100 relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div>
@@ -156,23 +162,30 @@
             </div>
         </div>
 
-        <!-- VIEW: Formulario Público del Empleado (Estricto sin desbordes) -->
+        <!-- VIEW: Formulario Público del Empleado -->
         <div id="view-employee-form" class="hidden-view flex flex-col items-center p-3 sm:p-4 min-h-screen bg-slate-50 fade-in pb-20 w-full">
             
             <div id="publicFormContainer" class="bg-white p-5 md:p-8 rounded-3xl shadow-xl max-w-3xl w-full border border-slate-200 relative overflow-hidden mt-4 md:mt-10">
                 <div class="absolute top-0 left-0 w-full h-2 md:h-3 bg-indigo-500"></div>
                 <div class="text-center mb-6 md:mb-8 mt-2 w-full">
-                    <div class="w-14 h-14 md:w-16 md:h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto text-indigo-600 mb-3 md:mb-4 shadow-inner">
-                        <i data-lucide="clipboard-list" class="w-7 h-7 md:w-8 md:h-8"></i>
-                    </div>
-                    <h2 class="text-xl md:text-2xl font-black text-slate-800 px-2">Ingreso de Personal</h2>
+                    <h2 class="text-xl md:text-2xl font-black text-slate-800 px-2 mt-4">Ficha Técnica de Ingreso</h2>
                     <p class="text-xs md:text-sm text-slate-500 mt-2 px-2">Diligencia tus datos. La información será encriptada y enviada a Recursos Humanos. <br><strong class="text-red-500">No podrás modificar los datos después de enviar.</strong></p>
                 </div>
 
-                <!-- Aseguramos que el form no empuje los bordes con w-full y max-w-full -->
                 <form id="publicEmployeeForm" onsubmit="appState.submitPublicForm(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 w-full max-w-full">
                     <input type="hidden" id="pubCompanyId">
                     
+                    <!-- FOTO DE PERFIL -->
+                    <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center mb-4">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-2 text-center w-full">Fotografía del Empleado *</label>
+                        <div class="avatar-upload-wrapper shadow-inner">
+                            <i data-lucide="camera" class="w-8 h-8 text-slate-400"></i>
+                            <input type="file" id="pubFileFoto" accept="image/*" required onchange="utils.previewAvatar(event, 'pubAvatarPreview')">
+                            <img id="pubAvatarPreview" src="" alt="Avatar" class="hidden">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2">Toca para tomar/subir una foto de rostro claro</p>
+                    </div>
+
                     <!-- Info Personal -->
                     <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1">
                         <h3 class="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Info Personal</h3>
@@ -333,8 +346,8 @@
             <!-- Cabecera de Acciones -->
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 w-full">
                 <div class="w-full lg:w-auto text-center lg:text-left border-b border-slate-100 lg:border-none pb-3 lg:pb-0">
-                    <h2 class="text-xl md:text-2xl font-black text-slate-800">Gestión de Personal</h2>
-                    <p class="text-xs md:text-sm text-slate-500 font-medium mt-1">Directorio exclusivo de tu empresa.</p>
+                    <h2 class="text-xl md:text-2xl font-black text-slate-800">Directorio de Personal</h2>
+                    <p class="text-xs md:text-sm text-slate-500 font-medium mt-1">Gestión de fichas técnicas y documentos.</p>
                 </div>
                 
                 <div class="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-3 w-full lg:w-auto">
@@ -381,9 +394,9 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-white text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
-                                    <th class="p-4 font-bold whitespace-nowrap">Empleado / ID</th>
+                                    <th class="p-4 font-bold whitespace-nowrap">Empleado (Ficha Técnica)</th>
                                     <th class="p-4 font-bold whitespace-nowrap">Contacto</th>
-                                    <th class="p-4 font-bold whitespace-nowrap">Salud / ARL</th>
+                                    <th class="p-4 font-bold whitespace-nowrap">Estado ARL / Salud</th>
                                     <th class="p-4 font-bold text-center whitespace-nowrap">Documentos</th>
                                     <th class="p-4 font-bold text-right whitespace-nowrap">Acciones</th>
                                 </tr>
@@ -397,7 +410,7 @@
             </div>
         </div>
 
-        <!-- Modal Formulario Empleado (Estilo Bottom Sheet ajustado) -->
+        <!-- Modal Formulario Empleado RRHH (Estilo Ficha Técnica) -->
         <div id="employeeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden-view flex items-end sm:items-center justify-center sm:p-4">
             
             <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-4xl h-[92vh] sm:h-auto sm:max-h-[95vh] flex flex-col overflow-hidden slide-up-mobile sm:fade-in relative pb-safe">
@@ -407,7 +420,7 @@
                 </div>
 
                 <div class="px-5 md:px-6 py-3 md:py-4 border-b flex justify-between items-center bg-white sm:bg-slate-50 w-full">
-                    <h2 id="empModalTitle" class="text-xl md:text-2xl font-black text-slate-800">Registrar Empleado</h2>
+                    <h2 id="empModalTitle" class="text-xl md:text-2xl font-black text-slate-800">Ficha Técnica</h2>
                     <button onclick="ui.closeEmployeeModal()" class="text-slate-400 hover:text-red-500 p-2 bg-slate-50 hover:bg-red-50 rounded-full transition-colors active:scale-90"><i data-lucide="x" class="w-6 h-6"></i></button>
                 </div>
                 
@@ -415,8 +428,19 @@
                     <form id="employeeForm" onsubmit="appState.saveEmployee(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-full">
                         <input type="hidden" id="empId">
                         
+                        <!-- FOTO DE PERFIL RRHH -->
+                        <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center mb-2">
+                            <div class="avatar-upload-wrapper shadow-sm">
+                                <i data-lucide="camera" class="w-8 h-8 text-slate-400"></i>
+                                <input type="file" id="empFileFoto" accept="image/*" onchange="utils.previewAvatar(event, 'empAvatarPreview')">
+                                <img id="empAvatarPreview" src="" alt="Avatar" class="hidden">
+                                <input type="hidden" id="empFileFotoBase64">
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-2 font-medium">Foto del empleado (Opcional)</p>
+                        </div>
+
                         <!-- Info Personal -->
-                        <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 w-full">
+                        <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 w-full mt-2">
                             <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Info. Personal</h3>
                         </div>
                         <div class="w-full">
@@ -436,9 +460,9 @@
                             <input type="date" id="empCumple" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white">
                         </div>
 
-                        <!-- Salud -->
+                        <!-- Salud General -->
                         <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2 w-full">
-                            <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="heart-pulse" class="w-4 h-4"></i> Salud y Seguridad (Gestión ARL)</h3>
+                            <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="heart-pulse" class="w-4 h-4"></i> Salud</h3>
                         </div>
                         <div class="w-full">
                             <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">EPS</label>
@@ -454,17 +478,33 @@
                                 <option value="AB+">AB Positivo (AB+)</option><option value="AB-">AB Negativo (AB-)</option>
                             </select>
                         </div>
-                        <div class="w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Fecha Inicio ARL</label>
-                            <input type="date" id="empArlFecha" class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white">
-                        </div>
-                        <div class="w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Duración ARL</label>
-                            <select id="empArlDuracion" class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white">
-                                <option value="Indefinido" selected>Indefinido</option>
-                                <option value="15 Días">15 Días</option>
-                                <option value="1 Mes">1 Mes</option>
-                            </select>
+
+                        <!-- GESTIÓN ARL AGRUPADA -->
+                        <div class="col-span-1 md:col-span-2 bg-slate-50 border border-slate-200 rounded-2xl p-4 mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                            <div class="col-span-1 md:col-span-2 border-b border-slate-200 pb-2 w-full">
+                                <h3 class="text-[11px] md:text-sm font-black text-indigo-700 uppercase tracking-widest flex items-center gap-2"><i data-lucide="shield-alert" class="w-4 h-4"></i> Gestión Integral ARL</h3>
+                                <p class="text-[10px] text-slate-500 mt-1">El sistema calculará automáticamente si la ARL está activa según la duración.</p>
+                            </div>
+                            
+                            <div class="w-full">
+                                <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Fecha de Inicio ARL</label>
+                                <input type="date" id="empArlFecha" class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-white">
+                            </div>
+                            <div class="w-full">
+                                <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Duración ARL</label>
+                                <select id="empArlDuracion" class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-white">
+                                    <option value="No activo" selected>No activo</option>
+                                    <option value="15 Días">15 Días</option>
+                                    <option value="1 Mes">1 Mes</option>
+                                </select>
+                            </div>
+                            <div class="col-span-1 md:col-span-2 w-full mt-2">
+                                <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Subir Certificado ARL (PDF - Máx 500KB)</label>
+                                <div class="relative w-full">
+                                    <input type="file" id="empFileArl" accept="application/pdf" class="w-full px-4 py-2 bg-white border-2 border-slate-200 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 cursor-pointer">
+                                </div>
+                                <input type="hidden" id="empFileArlBase64">
+                            </div>
                         </div>
 
                         <!-- Contacto -->
@@ -488,30 +528,23 @@
                             <input type="text" id="empEmergencia" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Nombre y teléfono del acudiente">
                         </div>
 
-                        <!-- Documentos PDF -->
+                        <!-- Documentos PDF Personales -->
                         <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2 w-full">
-                            <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="file-up" class="w-4 h-4"></i> Archivos PDF (Máx 500KB)</h3>
+                            <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="file-up" class="w-4 h-4"></i> Archivo de Identidad</h3>
                         </div>
                         
                         <div class="col-span-1 md:col-span-2 w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Reemplazar Cédula (Opcional)</label>
+                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Cédula PDF (Máx 500KB)</label>
                             <div class="relative w-full">
                                 <input type="file" id="empFileCedula" accept="application/pdf" class="w-full px-4 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-100 file:text-indigo-700 cursor-pointer">
                             </div>
                             <input type="hidden" id="empFileCedulaBase64">
                         </div>
-                        <div class="col-span-1 md:col-span-2 w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Subir Certificado ARL (RRHH)</label>
-                            <div class="relative w-full">
-                                <input type="file" id="empFileArl" accept="application/pdf" class="w-full px-4 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 cursor-pointer">
-                            </div>
-                            <input type="hidden" id="empFileArlBase64">
-                        </div>
 
                         <!-- Botones inferiores -->
                         <div class="col-span-1 md:col-span-2 flex flex-col-reverse md:flex-row justify-end gap-3 pt-6 pb-4 md:pb-0 mt-4 border-t border-slate-100 w-full">
                             <button type="button" onclick="ui.closeEmployeeModal()" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors active:scale-95">Cancelar</button>
-                            <button type="submit" id="saveEmployeeBtn" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 active:scale-95">Guardar Datos</button>
+                            <button type="submit" id="saveEmployeeBtn" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 active:scale-95">Guardar Ficha Técnica</button>
                         </div>
                     </form>
                 </div>
@@ -550,13 +583,12 @@
             employees: []
         };
 
-        // Utilidades de Seguridad (Anti-XSS) y Soporte Móvil Nativo
+        // Utilidades del Sistema
         window.utils = {
             escapeHTML: (str) => {
                 if (str === null || str === undefined) return '';
                 return String(str).replace(/[&<>'"]/g, match => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[match]));
             },
-            // Motor de descarga robusto universal para iOS, Android y PC
             downloadBase64PDF: (base64Data, filename) => {
                 try {
                     const arr = base64Data.split(',');
@@ -569,7 +601,6 @@
                     const blob = new Blob([u8arr], {type: mime});
                     const url = URL.createObjectURL(blob);
                     
-                    // Si el dispositivo es iOS, abrir en nueva pestaña en vez de forzar descarga
                     if(/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
                         window.open(url, '_blank');
                     } else {
@@ -585,26 +616,78 @@
                         }, 100);
                     }
                 } catch(e) {
-                    console.error("Error al procesar PDF", e);
                     ui.toast("Error al abrir el documento", "error");
                 }
+            },
+            // Compresor de fotos en tiempo real para ahorrar espacio en BD
+            compressImage: (file) => new Promise((resolve, reject) => {
+                if(!file) return resolve('');
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 300; // Avatar pequeño y ligero
+                        const scaleSize = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scaleSize;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.8));
+                    };
+                };
+                reader.onerror = error => reject(error);
+            }),
+            previewAvatar: (event, previewId) => {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imgEl = document.getElementById(previewId);
+                        imgEl.src = e.target.result;
+                        imgEl.classList.remove('hidden');
+                    }
+                    reader.readAsDataURL(file);
+                }
+            },
+            // Lógica inteligente para calcular el estado de la ARL
+            getArlStatus: (fecha, duracion) => {
+                if (!fecha || duracion === 'No activo') {
+                    return { status: 'NO ACTIVA', color: 'text-red-600', bg: 'bg-red-100', dot: 'bg-red-500' };
+                }
+                
+                // Tratar fechas para evitar bugs de zona horaria
+                const startParts = fecha.split('-');
+                const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2], 0, 0, 0);
+                const now = new Date();
+                
+                let endDate = new Date(startDate);
+                if (duracion === '15 Días') {
+                    endDate.setDate(endDate.getDate() + 15);
+                } else if (duracion === '1 Mes') {
+                    endDate.setMonth(endDate.getMonth() + 1);
+                }
+
+                // Fijar hora de fin del día limite
+                endDate.setHours(23, 59, 59, 999);
+
+                if (now > endDate) {
+                    return { status: 'VENCIDA', color: 'text-orange-600', bg: 'bg-orange-100', dot: 'bg-orange-500' };
+                }
+                return { status: 'VIGENTE', color: 'text-emerald-700', bg: 'bg-emerald-100', dot: 'bg-emerald-500' };
             }
         };
 
         window.ui = {
             show: (id) => {
                 const el = document.getElementById(id);
-                if(el) {
-                    el.classList.remove('hidden-view');
-                    if(id.startsWith('view-') && id !== 'view-employee-form') el.style.display = 'block';
-                }
+                if(el) { el.classList.remove('hidden-view'); if(id.startsWith('view-') && id !== 'view-employee-form') el.style.display = 'block'; }
             },
             hide: (id) => {
                 const el = document.getElementById(id);
-                if(el) {
-                    el.classList.add('hidden-view');
-                    if(id.startsWith('view-') && id !== 'view-employee-form') el.style.display = 'none';
-                }
+                if(el) { el.classList.add('hidden-view'); if(id.startsWith('view-') && id !== 'view-employee-form') el.style.display = 'none'; }
             },
             toast: (msg, type = 'success') => {
                 const toast = document.createElement('div');
@@ -633,8 +716,14 @@
                 document.getElementById('empId').value = '';
                 document.getElementById('empFileCedulaBase64').value = '';
                 document.getElementById('empFileArlBase64').value = '';
-                document.getElementById('empModalTitle').innerText = emp ? 'Editar Empleado' : 'Registrar Empleado';
+                document.getElementById('empFileFotoBase64').value = '';
+                document.getElementById('empModalTitle').innerText = emp ? 'Editar Ficha Técnica' : 'Nueva Ficha Técnica';
                 
+                // Reseteo visual de avatar
+                const imgPreview = document.getElementById('empAvatarPreview');
+                imgPreview.src = '';
+                imgPreview.classList.add('hidden');
+
                 if(emp) {
                     document.getElementById('empId').value = emp.id;
                     document.getElementById('empNombres').value = emp.nombres;
@@ -644,13 +733,19 @@
                     document.getElementById('empEps').value = emp.eps;
                     document.getElementById('empSangre').value = emp.tipoSangre;
                     document.getElementById('empArlFecha').value = emp.fechaArl || '';
-                    document.getElementById('empArlDuracion').value = emp.duracionArl || 'Indefinido';
+                    document.getElementById('empArlDuracion').value = emp.duracionArl || 'No activo';
                     document.getElementById('empTel').value = emp.telefono;
                     document.getElementById('empCorreo').value = emp.correo;
                     document.getElementById('empDir').value = emp.direccion;
                     document.getElementById('empEmergencia').value = emp.contactoEmergencia;
                     if(emp.fileCedula) document.getElementById('empFileCedulaBase64').value = emp.fileCedula;
                     if(emp.fileArl) document.getElementById('empFileArlBase64').value = emp.fileArl;
+                    
+                    if(emp.fotoPerfil) {
+                        document.getElementById('empFileFotoBase64').value = emp.fotoPerfil;
+                        imgPreview.src = emp.fotoPerfil;
+                        imgPreview.classList.remove('hidden');
+                    }
                 }
                 ui.show('employeeModal');
                 document.getElementById('employeeModal').style.display = 'flex';
@@ -660,7 +755,7 @@
 
         const fileToBase64 = (file) => new Promise((resolve, reject) => {
             if (!file) return resolve(null);
-            if (file.size > 500000) return reject('El archivo supera los 500KB permitidos.');
+            if (file.size > 500000) return reject('El PDF supera los 500KB permitidos.');
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = () => resolve(reader.result);
@@ -684,7 +779,6 @@
                     });
                 }
 
-                // Autenticación Silenciosa Segura
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
@@ -695,7 +789,6 @@
                     return ui.toast("Error de conexión segura. Verifica Firebase.", "error");
                 }
 
-                // ROUTER
                 const urlParams = new URLSearchParams(window.location.search);
                 const publicCompanyId = urlParams.get('form');
 
@@ -747,11 +840,15 @@
                     const cc = document.getElementById('pubCedula').value.trim();
                     const id = `emp_${Date.now()}_${cc}`;
 
+                    const fFoto = document.getElementById('pubFileFoto').files[0];
+                    const fotoBase64 = await utils.compressImage(fFoto);
+
                     const fCedula = document.getElementById('pubFileCedula').files[0];
                     const base64Cedula = await fileToBase64(fCedula);
 
                     const data = {
                         companyId: compId,
+                        fotoPerfil: fotoBase64,
                         nombres: document.getElementById('pubNombres').value.trim(),
                         apellidos: document.getElementById('pubApellidos').value.trim(),
                         cedula: cc,
@@ -759,7 +856,7 @@
                         eps: document.getElementById('pubEps').value.trim(),
                         tipoSangre: document.getElementById('pubSangre').value,
                         fechaArl: '', 
-                        duracionArl: 'Indefinido',
+                        duracionArl: 'No activo',
                         telefono: document.getElementById('pubTel').value.trim(),
                         correo: document.getElementById('pubCorreo').value.trim(),
                         direccion: document.getElementById('pubDir').value.trim(),
@@ -881,7 +978,6 @@
                 if(!appData.currentUser || !appData.currentUser.companyId) return;
                 const link = `${window.location.origin}${window.location.pathname}?form=${appData.currentUser.companyId}`;
                 
-                // Fallback para celulares que bloquean el clipboard sin HTTPS puro
                 if (navigator.clipboard && window.isSecureContext) {
                     navigator.clipboard.writeText(link).then(() => {
                         ui.toast("Enlace copiado. Compártelo en WhatsApp o Correo.", "info");
@@ -909,15 +1005,19 @@
                     
                     const fCedula = document.getElementById('empFileCedula').files[0];
                     const fArl = document.getElementById('empFileArl').files[0];
+                    const fFoto = document.getElementById('empFileFoto').files[0];
                     
                     let base64Cedula = document.getElementById('empFileCedulaBase64').value; 
                     let base64Arl = document.getElementById('empFileArlBase64').value;
+                    let base64Foto = document.getElementById('empFileFotoBase64').value;
 
+                    if(fFoto) base64Foto = await utils.compressImage(fFoto);
                     if(fCedula) base64Cedula = await fileToBase64(fCedula);
                     if(fArl) base64Arl = await fileToBase64(fArl);
 
                     const data = {
                         companyId: appData.currentUser.companyId,
+                        fotoPerfil: base64Foto || '',
                         nombres: document.getElementById('empNombres').value.trim(),
                         apellidos: document.getElementById('empApellidos').value.trim(),
                         cedula: document.getElementById('empCedula').value.trim(),
@@ -936,7 +1036,7 @@
 
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), data);
                     ui.closeEmployeeModal();
-                    ui.toast('Expediente actualizado exitosamente');
+                    ui.toast('Ficha Técnica actualizada exitosamente');
                 } catch(err) {
                     ui.toast(err.toString(), "error");
                 } finally {
@@ -945,9 +1045,9 @@
             },
 
             deleteEmployee: (id) => {
-                ui.openConfirm("Borrar Expediente", "¿Seguro que deseas eliminar permanentemente a este empleado de la empresa?", async () => {
+                ui.openConfirm("Borrar Ficha Técnica", "¿Seguro que deseas eliminar permanentemente a este empleado de la empresa?", async () => {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id));
-                    ui.toast("Expediente eliminado correctamente");
+                    ui.toast("Ficha técnica eliminada correctamente");
                 });
             },
 
@@ -969,17 +1069,22 @@
                     desktopHtml = '<tr><td colSpan="5" class="p-12 text-center text-slate-400 font-medium bg-slate-50">No hay empleados. Usa el enlace o sube un Excel.</td></tr>';
                     mobileHtml = '<div class="p-8 text-center text-slate-400 text-sm font-medium bg-slate-50 border border-slate-100 rounded-2xl">No hay empleados registrados.</div>';
                 } else {
-                    // Generar estructura para Tarjetas (Móviles)
-                    mobileHtml = myEmps.map(emp => `
+                    mobileHtml = myEmps.map(emp => {
+                        const arl = utils.getArlStatus(emp.fechaArl, emp.duracionArl);
+                        const avatarSrc = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
+                        
+                        return `
                         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3 fade-in">
-                            <div class="flex justify-between items-start gap-2">
-                                <div class="overflow-hidden">
-                                    <h3 class="font-black text-slate-800 text-lg leading-tight truncate">${utils.escapeHTML(emp.nombres)} ${utils.escapeHTML(emp.apellidos)}</h3>
-                                    <p class="text-xs text-slate-500 font-mono mt-1 font-semibold tracking-wide">CC: ${utils.escapeHTML(emp.cedula)}</p>
+                            <div class="flex justify-between items-start gap-3">
+                                <div class="flex gap-3 overflow-hidden items-center">
+                                    <img src="${avatarSrc}" class="w-12 h-12 rounded-full object-cover shadow-sm border border-slate-200 flex-shrink-0" alt="Foto">
+                                    <div class="overflow-hidden">
+                                        <h3 class="font-black text-slate-800 text-lg leading-tight truncate">${utils.escapeHTML(emp.nombres)} ${utils.escapeHTML(emp.apellidos)}</h3>
+                                        <p class="text-xs text-slate-500 font-mono mt-0.5 font-semibold tracking-wide">CC: ${utils.escapeHTML(emp.cedula)}</p>
+                                    </div>
                                 </div>
                                 <div class="flex gap-2 flex-shrink-0">
                                     <button onclick="appState.editEmployee('${emp.id}')" class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 active:scale-90 transition-all"><i data-lucide="edit" class="w-4 h-4"></i></button>
-                                    <button onclick="appState.deleteEmployee('${emp.id}')" class="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 active:scale-90 transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                 </div>
                             </div>
                             
@@ -989,73 +1094,69 @@
                                 <a href="mailto:${utils.escapeHTML(emp.correo)}" class="col-span-2 flex items-center gap-1.5 truncate"><i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i> ${utils.escapeHTML(emp.correo)}</a>
                             </div>
 
-                            <div class="flex flex-wrap gap-2">
-                                <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-md text-[10px] uppercase font-black tracking-widest">${utils.escapeHTML(emp.eps)}</span>
-                                <span class="px-2.5 py-1 bg-red-100 text-red-800 rounded-md text-[10px] uppercase font-black tracking-widest">RH: ${utils.escapeHTML(emp.tipoSangre)}</span>
-                            </div>
-
                             <div class="flex justify-between items-center mt-1 pt-3 border-t border-slate-100">
-                                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wide flex items-center">
-                                    <i data-lucide="shield" class="w-3.5 h-3.5 mr-1 text-slate-400"></i>ARL: <span class="${emp.fechaArl ? 'text-slate-700 ml-1' : 'text-orange-500 ml-1'}">${emp.fechaArl ? utils.escapeHTML(emp.fechaArl) : 'Sin Asignar'}</span>
+                                <div class="flex flex-col">
+                                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wide flex items-center">
+                                        <i data-lucide="shield" class="w-3.5 h-3.5 mr-1 text-slate-400"></i>ARL <span class="px-2 py-0.5 ml-2 rounded-full text-[9px] ${arl.bg} ${arl.color} flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full ${arl.dot}"></span>${arl.status}</span>
+                                    </div>
+                                    <div class="text-[9px] text-slate-400 mt-1 ml-5">${emp.fechaArl ? emp.fechaArl + ' ('+emp.duracionArl+')' : 'Sin fecha'}</div>
                                 </div>
                                 <div class="flex gap-2">
-                                    ${emp.fileCedula ? `
-                                    <button onclick="utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" class="p-2.5 bg-indigo-600 text-white shadow-md shadow-indigo-200 rounded-xl active:scale-90 transition-all">
-                                        <i data-lucide="id-card" class="w-4 h-4"></i>
-                                    </button>` : `<div class="p-2.5 bg-slate-100 text-slate-300 rounded-xl"><i data-lucide="id-card" class="w-4 h-4"></i></div>`}
-                                    
-                                    ${emp.fileArl ? `
-                                    <button onclick="utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" class="p-2.5 bg-emerald-600 text-white shadow-md shadow-emerald-200 rounded-xl active:scale-90 transition-all">
-                                        <i data-lucide="file-check-2" class="w-4 h-4"></i>
-                                    </button>` : `<div class="p-2.5 bg-slate-100 text-slate-300 rounded-xl"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>`}
+                                    ${emp.fileCedula ? `<button onclick="utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" class="p-2.5 bg-slate-800 text-white shadow-md rounded-xl active:scale-90 transition-all"><i data-lucide="id-card" class="w-4 h-4"></i></button>` : `<div class="p-2.5 bg-slate-100 text-slate-300 rounded-xl"><i data-lucide="id-card" class="w-4 h-4"></i></div>`}
+                                    ${emp.fileArl ? `<button onclick="utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" class="p-2.5 bg-emerald-600 text-white shadow-md rounded-xl active:scale-90 transition-all"><i data-lucide="file-check-2" class="w-4 h-4"></i></button>` : `<div class="p-2.5 bg-slate-100 text-slate-300 rounded-xl"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>`}
                                 </div>
                             </div>
                         </div>
-                    `).join('');
+                    `;
+                    }).join('');
 
-                    // Generar estructura para Tabla (Escritorio)
-                    desktopHtml = myEmps.map(emp => `
+                    desktopHtml = myEmps.map(emp => {
+                        const arl = utils.getArlStatus(emp.fechaArl, emp.duracionArl);
+                        const avatarSrc = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
+
+                        return `
                         <tr class="hover:bg-slate-50 transition-colors group">
                             <td class="p-4">
-                                <div class="font-bold text-slate-800">${utils.escapeHTML(emp.nombres)} ${utils.escapeHTML(emp.apellidos)}</div>
-                                <div class="text-xs text-slate-500 font-mono mt-1">CC: ${utils.escapeHTML(emp.cedula)}</div>
-                                <div class="text-xs text-slate-400 mt-1"><i data-lucide="cake" class="w-3 h-3 inline"></i> ${utils.escapeHTML(emp.cumpleanos)}</div>
+                                <div class="flex items-center gap-3">
+                                    <img src="${avatarSrc}" class="w-10 h-10 rounded-full object-cover shadow-sm border border-slate-200">
+                                    <div>
+                                        <div class="font-bold text-slate-800">${utils.escapeHTML(emp.nombres)} ${utils.escapeHTML(emp.apellidos)}</div>
+                                        <div class="text-xs text-slate-500 font-mono mt-1">CC: ${utils.escapeHTML(emp.cedula)}</div>
+                                    </div>
+                                </div>
                             </td>
                             <td class="p-4">
                                 <div class="text-sm text-slate-600 mb-1 flex items-center"><i data-lucide="phone" class="w-3 h-3 mr-2 text-slate-400"></i> ${utils.escapeHTML(emp.telefono)}</div>
                                 <div class="text-xs text-slate-500 flex items-center"><i data-lucide="mail" class="w-3 h-3 mr-2 text-slate-400"></i> ${utils.escapeHTML(emp.correo)}</div>
-                                <div class="text-[10px] text-slate-400 mt-1 uppercase truncate max-w-[150px]" title="${utils.escapeHTML(emp.direccion)}">${utils.escapeHTML(emp.direccion)}</div>
                             </td>
                             <td class="p-4">
-                                <div class="flex gap-2 mb-2">
-                                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-xs font-bold border border-emerald-200">${utils.escapeHTML(emp.eps)}</span>
-                                    <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded text-xs font-bold border border-red-200">RH: ${utils.escapeHTML(emp.tipoSangre)}</span>
-                                </div>
-                                <div class="text-[11px] font-semibold text-slate-500">
-                                    <i data-lucide="shield" class="w-3 h-3 inline mr-1 text-slate-400"></i>ARL: ${emp.fechaArl ? utils.escapeHTML(emp.fechaArl) : 'Sin Asignar'} (${utils.escapeHTML(emp.duracionArl)})
+                                <div class="flex flex-col gap-1.5">
+                                    <div class="flex gap-2">
+                                        <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] uppercase font-bold border border-emerald-200">${utils.escapeHTML(emp.eps)}</span>
+                                        <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded text-[10px] uppercase font-bold border border-red-200">RH: ${utils.escapeHTML(emp.tipoSangre)}</span>
+                                    </div>
+                                    <div class="flex items-center mt-1">
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] uppercase font-bold ${arl.bg} ${arl.color} border border-current opacity-80 flex items-center gap-1.5">
+                                            <span class="w-1.5 h-1.5 rounded-full ${arl.dot}"></span> ARL: ${arl.status}
+                                        </span>
+                                    </div>
                                 </div>
                             </td>
                             <td class="p-4 text-center">
-                                <div class="flex justify-center gap-3">
-                                    ${emp.fileCedula ? `
-                                    <button onclick="utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" title="Ver Cédula" class="p-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:shadow-md rounded-xl transition-all border border-indigo-100">
-                                        <i data-lucide="id-card" class="w-5 h-5"></i>
-                                    </button>` : `<div class="p-2.5 bg-slate-50 text-slate-300 rounded-xl border border-slate-100"><i data-lucide="id-card" class="w-5 h-5"></i></div>`}
-                                    
-                                    ${emp.fileArl ? `
-                                    <button onclick="utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" title="Ver ARL" class="p-2.5 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:shadow-md rounded-xl transition-all border border-emerald-100">
-                                        <i data-lucide="file-check-2" class="w-5 h-5"></i>
-                                    </button>` : `<div class="p-2.5 bg-slate-50 text-slate-300 rounded-xl border border-slate-100"><i data-lucide="file-check-2" class="w-5 h-5"></i></div>`}
+                                <div class="flex justify-center gap-2">
+                                    ${emp.fileCedula ? `<button onclick="utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" title="Ver Cédula" class="p-2 bg-slate-800 text-white hover:bg-slate-700 rounded-lg shadow-sm transition-all"><i data-lucide="id-card" class="w-4 h-4"></i></button>` : `<div class="p-2 bg-slate-50 text-slate-300 rounded-lg border border-slate-100"><i data-lucide="id-card" class="w-4 h-4"></i></div>`}
+                                    ${emp.fileArl ? `<button onclick="utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" title="Ver ARL" class="p-2 bg-emerald-600 text-white hover:bg-emerald-500 rounded-lg shadow-sm transition-all"><i data-lucide="file-check-2" class="w-4 h-4"></i></button>` : `<div class="p-2 bg-slate-50 text-slate-300 rounded-lg border border-slate-100"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>`}
                                 </div>
                             </td>
                             <td class="p-4">
                                 <div class="flex justify-end gap-2 text-slate-500">
-                                    <button onclick="appState.editEmployee('${emp.id}')" class="p-2.5 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors"><i data-lucide="edit" class="w-4 h-4"></i></button>
-                                    <button onclick="appState.deleteEmployee('${emp.id}')" class="p-2.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    <button onclick="appState.editEmployee('${emp.id}')" class="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                                    <button onclick="appState.deleteEmployee('${emp.id}')" class="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                 </div>
                             </td>
                         </tr>
-                    `).join('');
+                    `;
+                    }).join('');
                 }
 
                 document.getElementById('employeesTableBody').innerHTML = desktopHtml;
@@ -1110,6 +1211,7 @@
                                 const id = `emp_${Date.now()}_${cc}`;
                                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), {
                                     companyId: appData.currentUser.companyId,
+                                    fotoPerfil: '',
                                     nombres: nom ? String(nom).trim() : '',
                                     apellidos: row[1] ? String(row[1]).trim() : '',
                                     cedula: String(cc).trim(),
@@ -1117,7 +1219,7 @@
                                     eps: row[4] ? String(row[4]).trim() : '',
                                     tipoSangre: row[5] ? String(row[5]).trim() : '',
                                     fechaArl: '', 
-                                    duracionArl: 'Indefinido',
+                                    duracionArl: 'No activo',
                                     telefono: row[6] ? String(row[6]).trim() : '',
                                     correo: row[7] ? String(row[7]).trim() : '',
                                     direccion: row[8] ? String(row[8]).trim() : '',
