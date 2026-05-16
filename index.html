@@ -80,8 +80,9 @@
     <!-- Navbar Global -->
     <nav id="globalNav" class="bg-white border-b border-slate-200 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm hidden-view w-full">
         <div class="flex items-center space-x-2 md:space-x-3">
-            <div class="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-md">
-                <i data-lucide="shield-check" class="w-5 h-5 md:w-6 md:h-6"></i>
+            <div class="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-md relative overflow-hidden" id="navLogoContainer">
+                <i data-lucide="shield-check" class="w-5 h-5 md:w-6 md:h-6" id="navDefaultIcon"></i>
+                <img id="navCompanyLogo" src="" class="hidden w-full h-full object-cover absolute inset-0 bg-white">
             </div>
             <div>
                 <h1 class="text-lg md:text-xl font-black tracking-tight leading-none">ProHR <span class="text-indigo-600">Secure</span></h1>
@@ -290,7 +291,14 @@
                         <i data-lucide="building-2" class="w-5 h-5 text-indigo-500"></i> 1. Gestión de Empresas
                     </h2>
                     <form onsubmit="appState.createCompany(event)" class="space-y-4 w-full mb-6">
-                        <input type="text" id="newCompName" required placeholder="Nombre de la Empresa (Ej: Coca Cola)" class="w-full px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base font-medium">
+                        <div class="flex gap-3 mb-2">
+                            <div class="avatar-upload-wrapper !w-14 !h-14 flex-shrink-0 shadow-sm" title="Subir Logo (Opcional)" style="width: 56px; height: 56px;">
+                                <i data-lucide="image-plus" class="w-5 h-5 text-slate-400"></i>
+                                <input type="file" id="newCompLogo" accept="image/*" onchange="utils.previewAvatar(event, 'newCompLogoPreview')">
+                                <img id="newCompLogoPreview" src="" alt="Logo" class="hidden">
+                            </div>
+                            <input type="text" id="newCompName" required placeholder="Nombre de la Empresa (Ej: Coca Cola)" class="w-full px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base font-medium">
+                        </div>
                         <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 md:py-2.5 rounded-xl transition-colors">Crear Empresa</button>
                     </form>
                     
@@ -325,6 +333,33 @@
                         </ul>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- MODAL: EDITAR EMPRESA -->
+        <div id="editCompanyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden-view">
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden fade-in relative">
+                <div class="px-6 py-4 border-b flex justify-between items-center bg-slate-50">
+                    <h2 class="text-xl font-black text-slate-800">Editar Empresa</h2>
+                    <button onclick="ui.hide('editCompanyModal')" class="text-slate-400 hover:text-red-500 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <form onsubmit="appState.saveCompanyEdit(event)" class="p-6">
+                    <input type="hidden" id="editCompId">
+                    <div class="flex flex-col items-center justify-center mb-6">
+                        <div class="avatar-upload-wrapper !w-24 !h-24 shadow-sm" title="Actualizar Logo" style="width: 96px; height: 96px;">
+                            <i data-lucide="image-plus" class="w-8 h-8 text-slate-400"></i>
+                            <input type="file" id="editCompLogo" accept="image/*" onchange="utils.previewAvatar(event, 'editCompLogoPreview')">
+                            <img id="editCompLogoPreview" src="" alt="Logo" class="hidden">
+                            <input type="hidden" id="editCompLogoBase64">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-2 font-medium">Actualizar Logo (Opcional)</p>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Nombre de la Empresa</label>
+                        <input type="text" id="editCompName" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none font-medium text-slate-700 bg-slate-50 focus:bg-white transition-colors">
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg shadow-indigo-200">Guardar Cambios</button>
+                </form>
             </div>
         </div>
 
@@ -911,6 +946,7 @@
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'companies'), snap => {
                     appData.companies = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     if(appData.currentUser?.role === 'SUPER_ADMIN') appState.renderSuperAdmin();
+                    if(appData.currentUser?.role === 'COMPANY_ADMIN') appState.routeUserAfterLogin(); // Para refrescar logo si cambia
                 }, error => console.error("Error leyendo companies:", error));
 
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), async snap => {
@@ -968,6 +1004,7 @@
             },
 
             routeUserAfterLogin: () => {
+                if(!appData.currentUser) return;
                 ui.hide('view-login');
                 ui.show('globalNav');
                 document.getElementById('navUserEmail').innerText = appData.currentUser.email;
@@ -975,16 +1012,32 @@
                 if (appData.currentUser.role === 'SUPER_ADMIN') {
                     document.getElementById('navUserRole').innerText = 'SUPER ADMIN';
                     document.getElementById('navSubtitle').innerText = 'Panel Maestro';
+                    
+                    // Resetear el logo al genérico para el Super Admin
+                    document.getElementById('navDefaultIcon').classList.remove('hidden');
+                    document.getElementById('navCompanyLogo').classList.add('hidden');
+                    document.getElementById('navCompanyLogo').src = '';
+
                     ui.show('view-superadmin');
                     appState.renderSuperAdmin();
-                    ui.toast('Bienvenido, Super Administrador');
                 } else if (appData.currentUser.role === 'COMPANY_ADMIN') {
                     const comp = appData.companies.find(c => c.id === appData.currentUser.companyId);
                     document.getElementById('navUserRole').innerText = 'ADMIN EMPRESA';
                     document.getElementById('navSubtitle').innerText = comp ? comp.name : 'Portal Empresarial';
+                    
+                    // Mostrar Logo de la Empresa en el Navbar si existe
+                    if (comp && comp.logo) {
+                        document.getElementById('navDefaultIcon').classList.add('hidden');
+                        document.getElementById('navCompanyLogo').src = comp.logo;
+                        document.getElementById('navCompanyLogo').classList.remove('hidden');
+                    } else {
+                        document.getElementById('navDefaultIcon').classList.remove('hidden');
+                        document.getElementById('navCompanyLogo').src = '';
+                        document.getElementById('navCompanyLogo').classList.add('hidden');
+                    }
+
                     ui.show('view-companyadmin');
                     appState.renderEmployees();
-                    ui.toast(`Sesión iniciada: ${comp?.name || 'Empresa'}`);
                 }
             },
 
@@ -1055,24 +1108,83 @@
             // --- SUPER ADMIN CRUD ---
             createCompany: async (e) => {
                 e.preventDefault();
-                const name = document.getElementById('newCompName').value.trim();
-                const id = `comp_${Date.now()}`;
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'companies', id), { name });
-                document.getElementById('newCompName').value = '';
-                ui.toast('Empresa creada con éxito');
+                const btn = e.target.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                
+                try {
+                    const name = document.getElementById('newCompName').value.trim();
+                    const fileLogo = document.getElementById('newCompLogo').files[0];
+                    let logoBase64 = '';
+                    
+                    if (fileLogo) {
+                        logoBase64 = await utils.compressImage(fileLogo);
+                    }
+
+                    const id = `comp_${Date.now()}`;
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'companies', id), { 
+                        name: name,
+                        logo: logoBase64 
+                    });
+                    
+                    document.getElementById('newCompName').value = '';
+                    document.getElementById('newCompLogo').value = '';
+                    document.getElementById('newCompLogoPreview').src = '';
+                    document.getElementById('newCompLogoPreview').classList.add('hidden');
+                    ui.toast('Empresa creada con éxito');
+                } catch (error) {
+                    ui.toast('Error al crear la empresa', 'error');
+                } finally {
+                    btn.disabled = false;
+                }
             },
 
-            editCompany: async (id) => {
+            editCompany: (id) => {
                 const comp = appData.companies.find(c => c.id === id);
                 if (!comp) return;
-                const newName = prompt("Ingresa el nuevo nombre para la empresa:", comp.name);
-                if (newName && newName.trim() !== "" && newName.trim() !== comp.name) {
-                    try {
-                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'companies', id), { name: newName.trim() });
-                        ui.toast('Empresa actualizada correctamente');
-                    } catch (e) {
-                        ui.toast('Error al actualizar la empresa', 'error');
+                
+                document.getElementById('editCompId').value = comp.id;
+                document.getElementById('editCompName').value = comp.name;
+                document.getElementById('editCompLogoBase64').value = comp.logo || '';
+                
+                const preview = document.getElementById('editCompLogoPreview');
+                if (comp.logo) {
+                    preview.src = comp.logo;
+                    preview.classList.remove('hidden');
+                } else {
+                    preview.src = '';
+                    preview.classList.add('hidden');
+                }
+                document.getElementById('editCompLogo').value = '';
+                
+                ui.show('editCompanyModal');
+            },
+
+            saveCompanyEdit: async (e) => {
+                e.preventDefault();
+                const btn = e.target.querySelector('button[type="submit"]');
+                btn.disabled = true;
+
+                try {
+                    const id = document.getElementById('editCompId').value;
+                    const name = document.getElementById('editCompName').value.trim();
+                    const fileLogo = document.getElementById('editCompLogo').files[0];
+                    let base64Logo = document.getElementById('editCompLogoBase64').value;
+                    
+                    if(fileLogo) {
+                        base64Logo = await utils.compressImage(fileLogo);
                     }
+
+                    await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'companies', id), { 
+                        name: name,
+                        logo: base64Logo
+                    });
+                    
+                    ui.hide('editCompanyModal');
+                    ui.toast('Empresa actualizada correctamente');
+                } catch (err) {
+                    ui.toast('Error al actualizar la empresa', 'error');
+                } finally {
+                    btn.disabled = false;
                 }
             },
 
@@ -1117,14 +1229,20 @@
 
             renderSuperAdmin: () => {
                 const compHtml = appData.companies.map(c => `
-                    <li class="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center text-sm gap-2">
-                        <div class="flex-1 min-w-0">
-                            <span class="font-bold text-slate-700 truncate block"><i data-lucide="building" class="w-4 h-4 inline mr-1 text-slate-400"></i>${utils.escapeHTML(c.name)}</span>
-                            <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">ID: ${c.id.substring(0,8)}</span>
+                    <li class="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center text-sm gap-3">
+                        <div class="flex items-center gap-3 flex-1 min-w-0">
+                            ${c.logo 
+                                ? `<img src="${c.logo}" class="w-10 h-10 rounded-xl object-cover shadow-sm flex-shrink-0 border border-slate-200 bg-white">`
+                                : `<div class="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-500 flex-shrink-0 border border-indigo-200"><i data-lucide="building" class="w-5 h-5"></i></div>`
+                            }
+                            <div class="flex-1 min-w-0">
+                                <span class="font-bold text-slate-700 truncate block text-base">${utils.escapeHTML(c.name)}</span>
+                                <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">ID: ${c.id.substring(0,8)}</span>
+                            </div>
                         </div>
                         <div class="flex gap-1 flex-shrink-0">
-                            <button onclick="appState.editCompany('${c.id}')" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Editar Nombre"><i data-lucide="edit" class="w-4 h-4"></i></button>
-                            <button onclick="appState.deleteCompany('${c.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar Empresa"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <button onclick="appState.editCompany('${c.id}')" class="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors" title="Editar Empresa"><i data-lucide="edit" class="w-5 h-5"></i></button>
+                            <button onclick="appState.deleteCompany('${c.id}')" class="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors" title="Eliminar Empresa"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
                         </div>
                     </li>
                 `).join('') || '<li class="text-sm text-slate-400 p-2 text-center">No hay empresas.</li>';
