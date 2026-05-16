@@ -80,7 +80,7 @@
     <!-- Navbar Global -->
     <nav id="globalNav" class="bg-white border-b border-slate-200 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm hidden-view w-full">
         <div class="flex items-center space-x-2 md:space-x-3">
-            <div class="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-md relative overflow-hidden" id="navLogoContainer">
+            <div class="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-md relative overflow-hidden cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-all" id="navLogoContainer" onclick="if(appData.currentUser?.role === 'COMPANY_ADMIN') appState.editCompany(appData.currentUser.companyId)" title="Configurar Empresa">
                 <i data-lucide="shield-check" class="w-5 h-5 md:w-6 md:h-6" id="navDefaultIcon"></i>
                 <img id="navCompanyLogo" src="" class="hidden w-full h-full object-cover absolute inset-0 bg-white">
             </div>
@@ -369,8 +369,13 @@
             <!-- Cabecera de Acciones -->
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 w-full">
                 <div class="w-full lg:w-auto text-center lg:text-left border-b border-slate-100 lg:border-none pb-3 lg:pb-0">
-                    <h2 class="text-xl md:text-2xl font-black text-slate-800">Directorio de Personal</h2>
-                    <p class="text-xs md:text-sm text-slate-500 font-medium mt-1">Gestión de fichas técnicas y documentos.</p>
+                    <div class="flex items-center justify-center lg:justify-start gap-3">
+                        <h2 class="text-xl md:text-2xl font-black text-slate-800">Directorio de Personal</h2>
+                        <button onclick="appState.editCompany(appData.currentUser.companyId)" class="p-1.5 md:p-2 bg-slate-100 hover:bg-indigo-100 text-slate-500 hover:text-indigo-600 rounded-lg md:rounded-xl transition-colors shadow-sm active:scale-95" title="Actualizar Perfil y Logo de Empresa">
+                            <i data-lucide="settings" class="w-4 h-4 md:w-5 md:h-5"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs md:text-sm text-slate-500 font-medium mt-1">Gestión de fichas técnicas y configuración.</p>
                 </div>
                 
                 <div class="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-3 w-full lg:w-auto">
