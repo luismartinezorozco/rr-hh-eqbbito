@@ -958,7 +958,11 @@
                     console.error("Error Auth Google:", error);
                     // Ignorar error si el usuario simplemente cerró la ventana emergente
                     if(error.code !== 'auth/popup-closed-by-user') {
-                        ui.toast("Error de autenticación con Google", "error");
+                        if (error.code === 'auth/unauthorized-domain') {
+                            ui.toast("Error: Este dominio no está autorizado en Firebase para usar Google Auth.", "error");
+                        } else {
+                            ui.toast("Error de autenticación con Google", "error");
+                        }
                     }
                 }
             },
