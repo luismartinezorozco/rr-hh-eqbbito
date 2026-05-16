@@ -38,14 +38,14 @@
 
         /* Evitar zoom en iOS al tocar inputs */
         input, select, textarea { font-size: 16px !important; }
+
+        /* Fix: Prevenir desbordamiento horizontal en móviles (Grids e Inputs) */
+        body, main { overflow-x: hidden; width: 100%; max-width: 100vw; }
+        form.grid > div { min-width: 0; max-width: 100%; }
+        input, select { max-width: 100%; }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col">
-
-    <!-- Navbar Global -->
-    <nav id="globalNav" class="bg-white border-b border-slate-200 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm hidden-view">
-        <div class="flex items-center space-x-2 md:space-x-3">
-            <div class="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-md">
+<body class="text-slate-800 antialiased min-h-screen flex flex-col overflow-x-hidden">
                 <i data-lucide="shield-check" class="w-5 h-5 md:w-6 md:h-6"></i>
             </div>
             <div>
@@ -140,7 +140,7 @@
                     <p class="text-xs md:text-sm text-slate-500 mt-2 px-2">Diligencia tus datos. La información será encriptada y enviada a Recursos Humanos. <br><strong class="text-red-500">No podrás modificar los datos después de enviar.</strong></p>
                 </div>
 
-                <form id="publicEmployeeForm" onsubmit="appState.submitPublicForm(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                <form id="publicEmployeeForm" onsubmit="appState.submitPublicForm(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 w-full">
                     <input type="hidden" id="pubCompanyId">
                     
                     <!-- Info Personal -->
@@ -381,13 +381,13 @@
                     <div class="w-12 h-1.5 bg-slate-200 rounded-full"></div>
                 </div>
 
-                <div class="px-5 md:px-6 py-3 md:py-4 border-b flex justify-between items-center bg-white sm:bg-slate-50">
+                <div class="px-5 md:px-6 py-3 md:py-4 border-b flex justify-between items-center bg-white sm:bg-slate-50 w-full">
                     <h2 id="empModalTitle" class="text-xl md:text-2xl font-black text-slate-800">Registrar Empleado</h2>
                     <button onclick="ui.closeEmployeeModal()" class="text-slate-400 hover:text-red-500 p-2 bg-slate-50 hover:bg-red-50 rounded-full transition-colors active:scale-90"><i data-lucide="x" class="w-6 h-6"></i></button>
                 </div>
                 
-                <div class="p-5 md:p-6 overflow-y-auto flex-1 custom-scrollbar">
-                    <form id="employeeForm" onsubmit="appState.saveEmployee(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="p-5 md:p-6 overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar w-full">
+                    <form id="employeeForm" onsubmit="appState.saveEmployee(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
                         <input type="hidden" id="empId">
                         
                         <!-- Info Personal -->
