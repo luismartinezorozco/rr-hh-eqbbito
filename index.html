@@ -122,43 +122,30 @@
     <!-- MAIN APP CONTAINER -->
     <main class="flex-1 w-full max-w-7xl mx-auto flex flex-col relative pb-10">
 
-        <!-- VIEW: Login Seguro -->
+        <!-- VIEW: Login Seguro con Google -->
         <div id="view-login" class="flex-1 flex items-center justify-center p-4 min-h-[80vh] fade-in hidden-view w-full">
-            <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl max-w-md w-full border border-slate-100 relative overflow-hidden">
+            <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl max-w-md w-full border border-slate-100 relative overflow-hidden text-center">
                 <div class="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div>
-                <div class="flex flex-col items-center mb-8 text-center mt-2">
+                <div class="flex flex-col items-center mb-6 mt-2">
                     <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-indigo-600 mb-4 shadow-inner border border-slate-200">
-                        <i data-lucide="lock" class="w-8 h-8"></i>
+                        <i data-lucide="shield-check" class="w-8 h-8"></i>
                     </div>
                     <h2 class="text-2xl font-black text-slate-800">Acceso Empresarial</h2>
-                    <p class="text-sm text-slate-500 font-medium mt-1">Ingresa tus credenciales asignadas</p>
+                    <p class="text-sm text-slate-500 font-medium mt-1">Plataforma Segura ProHR</p>
                 </div>
 
-                <div id="adminNotice" class="hidden bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl mb-6 text-sm font-medium">
-                    <i data-lucide="info" class="w-4 h-4 inline mb-1 mr-1"></i> Se ha creado el acceso maestro automáticamente.<br>
-                    <strong>Correo:</strong> admin@admin.com<br>
-                    <strong>PIN:</strong> 123456
+                <div id="adminNotice" class="bg-indigo-50 border border-indigo-200 text-indigo-800 p-4 rounded-xl mb-6 text-xs font-medium text-left">
+                    <i data-lucide="info" class="w-4 h-4 inline mb-0.5 mr-1 text-indigo-600"></i> 
+                    <strong>Sistema Inteligente:</strong> El primer usuario en iniciar sesión se convertirá automáticamente en el Super Administrador maestro del sistema.
                 </div>
 
-                <form id="loginForm" onsubmit="appState.login(event)" class="space-y-5 w-full">
-                    <div class="w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 ml-1">Correo Electrónico</label>
-                        <div class="relative w-full">
-                            <i data-lucide="mail" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
-                            <input type="email" id="loginEmail" required class="w-full pl-11 pr-4 py-3.5 md:py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 focus:ring-0 outline-none transition-colors bg-slate-50 focus:bg-white text-slate-800 font-medium" placeholder="correo@empresa.com">
-                        </div>
-                    </div>
-                    <div class="w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 ml-1">PIN de Seguridad</label>
-                        <div class="relative w-full">
-                            <i data-lucide="key-round" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
-                            <input type="password" id="loginPin" required class="w-full pl-11 pr-4 py-3.5 md:py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 focus:ring-0 outline-none transition-colors bg-slate-50 focus:bg-white text-slate-800 font-medium" placeholder="••••••">
-                        </div>
-                    </div>
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 md:py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-200 transition-all flex justify-center items-center gap-2 mt-8 active:scale-[0.98]">
-                        Ingresar al Sistema <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                <div class="w-full">
+                    <button type="button" onclick="appState.loginWithGoogle()" class="w-full bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-4 md:py-3.5 px-4 rounded-xl shadow-sm transition-all flex justify-center items-center gap-3 active:scale-[0.98]">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6" alt="Google Logo">
+                        Ingresar con Google
                     </button>
-                </form>
+                    <p class="text-[10px] text-slate-400 mt-4 font-medium">Debes usar el correo institucional autorizado por tu empresa.</p>
+                </div>
             </div>
         </div>
 
@@ -292,7 +279,7 @@
                 <i data-lucide="crown" class="w-8 h-8 md:w-10 md:h-10 flex-shrink-0 text-indigo-600"></i>
                 <div class="text-sm">
                     <strong class="block mb-1 text-base md:text-lg">Panel de Control Maestro</strong>
-                    <p class="font-medium text-xs md:text-sm">Desde aquí puedes crear empresas (clientes) y asignarles un usuario administrador. Los datos de cada empresa están estrictamente separados en la base de datos.</p>
+                    <p class="font-medium text-xs md:text-sm">Desde aquí puedes crear empresas (clientes) y asignarles un correo autorizado para ingresar. La autenticación se realiza mediante Google.</p>
                 </div>
             </div>
 
@@ -315,23 +302,24 @@
                     </div>
                 </div>
 
-                <!-- Crear Usuario Empresa -->
+                <!-- Crear Usuario Empresa (Correo) -->
                 <div class="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-200 w-full">
                     <h2 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-                        <i data-lucide="user-plus" class="w-5 h-5 text-emerald-500"></i> 2. Crear Acceso a Empresa
+                        <i data-lucide="user-check" class="w-5 h-5 text-emerald-500"></i> 2. Autorizar Correo
                     </h2>
                     <form onsubmit="appState.createUser(event)" class="space-y-4 w-full">
                         <select id="newUserCompany" required class="w-full px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base font-medium bg-slate-50">
                             <option value="">Seleccione una Empresa...</option>
                             <!-- JS Injects -->
                         </select>
-                        <input type="email" id="newUserEmail" required placeholder="Correo (Ej: rh@empresa.com)" class="w-full px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base font-medium">
-                        <input type="number" id="newUserPin" required placeholder="PIN Numérico (Ej: 1234)" class="w-full px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base font-medium">
-                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 md:py-2.5 rounded-xl transition-colors">Generar Usuario y Permisos</button>
+                        <input type="email" id="newUserEmail" required placeholder="Correo Google Autorizado (@gmail.com)" class="w-full px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base font-medium">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 md:py-2.5 rounded-xl transition-colors flex justify-center items-center gap-2">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 bg-white rounded-full" alt="Google"> Guardar Autorización
+                        </button>
                     </form>
 
                     <div class="mt-6 w-full">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Administradores Activos</h3>
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Correos Autorizados</h3>
                         <ul id="usersList" class="space-y-2 max-h-48 overflow-y-auto pr-1 w-full">
                             <!-- JS Injects -->
                         </ul>
@@ -634,7 +622,7 @@
     <!-- App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // =========================================================
@@ -785,7 +773,6 @@
             },
             closeConfirm: () => { ui.hide('confirmModal'); },
             
-            // --- NUEVO: ABRIR MODAL DE VISTA PREVIA (SOLO LECTURA) ---
             openViewModal: (emp) => {
                 document.getElementById('viewNombres').innerText = emp.nombres + ' ' + emp.apellidos;
                 document.getElementById('viewCedula').innerText = 'CC: ' + emp.cedula;
@@ -818,7 +805,6 @@
                 }
                 document.getElementById('viewDocsContainer').innerHTML = docsHtml;
 
-                // Conectar botón de edición dentro del modal
                 document.getElementById('viewModalEditBtn').onclick = () => {
                     ui.closeViewModal();
                     appState.editEmployee(emp.id);
@@ -830,7 +816,6 @@
             },
             closeViewModal: () => ui.hide('viewEmployeeModal'),
 
-            // --- ABRIR MODAL DE EDICIÓN / NUEVO ---
             openEmployeeModal: (emp = null) => {
                 document.getElementById('employeeForm').reset();
                 document.getElementById('empId').value = '';
@@ -897,6 +882,7 @@
                     });
                 }
 
+                // SIEMPRE AUTENTICAR PRIMERO (Requisito de Firebase para consultar datos)
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
@@ -904,12 +890,14 @@
                         await signInAnonymously(auth);
                     }
                 } catch (err) {
+                    console.error("Auth init error:", err);
                     return ui.toast("Error de conexión segura. Verifica Firebase.", "error");
                 }
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const publicCompanyId = urlParams.get('form');
 
+                // Si entran por URL pública
                 if(publicCompanyId) {
                     ui.hide('view-login');
                     ui.show('view-employee-form');
@@ -919,32 +907,97 @@
 
                 ui.show('view-login');
 
+                // AHORA SÍ escuchamos la BD, con manejadores de error incluidos
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'companies'), snap => {
                     appData.companies = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     if(appData.currentUser?.role === 'SUPER_ADMIN') appState.renderSuperAdmin();
-                });
+                }, error => console.error("Error leyendo companies:", error));
 
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), async snap => {
                     appData.users = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    if(appData.users.length === 0) {
-                        try {
-                            const superAdminData = { id: 'admin@admin.com', email: 'admin@admin.com', pin: '123456', role: 'SUPER_ADMIN' };
-                            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', superAdminData.id), superAdminData);
-                            document.getElementById('adminNotice').classList.remove('hidden');
-                            document.getElementById('loginEmail').value = 'admin@admin.com';
-                            document.getElementById('loginPin').value = '123456';
-                        } catch(e) {}
-                    }
                     if(appData.currentUser?.role === 'SUPER_ADMIN') appState.renderSuperAdmin();
-                });
+                }, error => console.error("Error leyendo users:", error));
 
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'employees'), snap => {
                     appData.employees = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     if(appData.currentUser?.role === 'COMPANY_ADMIN') appState.renderEmployees();
-                });
+                }, error => console.error("Error leyendo employees:", error));
             },
 
-            // ... logicas de submit, login, logout, superadmin quedan intactas ...
+            // --- NUEVO LOGICA GOOGLE AUTH ---
+            loginWithGoogle: async () => {
+                const provider = new GoogleAuthProvider();
+                try {
+                    const result = await signInWithPopup(auth, provider);
+                    const email = result.user.email.toLowerCase();
+
+                    // 1. Si no hay ningún usuario en el sistema, el primero en logearse será el Super Admin
+                    if (appData.users.length === 0) {
+                        const superAdminData = { email: email, role: 'SUPER_ADMIN' };
+                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', email), superAdminData);
+                        appData.currentUser = superAdminData;
+                        ui.toast('Configuración inicial: Registrado como Super Administrador');
+                        appState.routeUserAfterLogin();
+                        return;
+                    }
+
+                    // 2. Si ya hay usuarios, validar si el correo actual existe en la base de datos
+                    const userDoc = appData.users.find(u => u.email === email);
+                    
+                    if (!userDoc) {
+                        // Si no está autorizado, se cierra la sesión por seguridad
+                        await signOut(auth);
+                        return ui.toast('Acceso denegado. Este correo no está autorizado.', 'error');
+                    }
+
+                    // Si está autorizado, asignamos los permisos
+                    appData.currentUser = userDoc;
+                    appState.routeUserAfterLogin();
+                    
+                } catch (error) {
+                    console.error("Error Auth Google:", error);
+                    // Ignorar error si el usuario simplemente cerró la ventana emergente
+                    if(error.code !== 'auth/popup-closed-by-user') {
+                        ui.toast("Error de autenticación con Google", "error");
+                    }
+                }
+            },
+
+            routeUserAfterLogin: () => {
+                ui.hide('view-login');
+                ui.show('globalNav');
+                document.getElementById('navUserEmail').innerText = appData.currentUser.email;
+
+                if (appData.currentUser.role === 'SUPER_ADMIN') {
+                    document.getElementById('navUserRole').innerText = 'SUPER ADMIN';
+                    document.getElementById('navSubtitle').innerText = 'Panel Maestro';
+                    ui.show('view-superadmin');
+                    appState.renderSuperAdmin();
+                    ui.toast('Bienvenido, Super Administrador');
+                } else if (appData.currentUser.role === 'COMPANY_ADMIN') {
+                    const comp = appData.companies.find(c => c.id === appData.currentUser.companyId);
+                    document.getElementById('navUserRole').innerText = 'ADMIN EMPRESA';
+                    document.getElementById('navSubtitle').innerText = comp ? comp.name : 'Portal Empresarial';
+                    ui.show('view-companyadmin');
+                    appState.renderEmployees();
+                    ui.toast(`Sesión iniciada: ${comp?.name || 'Empresa'}`);
+                }
+            },
+
+            logout: async () => {
+                try {
+                    await signOut(auth);
+                    appData.currentUser = null;
+                    ui.hide('globalNav');
+                    ui.hide('view-superadmin');
+                    ui.hide('view-companyadmin');
+                    ui.show('view-login');
+                    ui.toast('Sesión cerrada exitosamente', 'info');
+                } catch (error) {
+                    ui.toast("Error al cerrar sesión", "error");
+                }
+            },
+
             submitPublicForm: async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('pubSubmitBtn');
@@ -995,45 +1048,6 @@
                 }
             },
 
-            login: (e) => {
-                e.preventDefault();
-                const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-                const pin = document.getElementById('loginPin').value.trim();
-
-                const user = appData.users.find(u => u.email === email && u.pin === pin);
-                if (!user) return ui.toast('Credenciales incorrectas', 'error');
-
-                appData.currentUser = user;
-                ui.hide('view-login');
-                ui.show('globalNav');
-                document.getElementById('navUserEmail').innerText = user.email;
-
-                if (user.role === 'SUPER_ADMIN') {
-                    document.getElementById('navUserRole').innerText = 'SUPER ADMIN';
-                    document.getElementById('navSubtitle').innerText = 'Panel Maestro';
-                    ui.show('view-superadmin');
-                    appState.renderSuperAdmin();
-                    ui.toast('Bienvenido, Super Administrador');
-                } else if (user.role === 'COMPANY_ADMIN') {
-                    const comp = appData.companies.find(c => c.id === user.companyId);
-                    document.getElementById('navUserRole').innerText = 'ADMIN EMPRESA';
-                    document.getElementById('navSubtitle').innerText = comp ? comp.name : 'Portal Empresarial';
-                    ui.show('view-companyadmin');
-                    appState.renderEmployees();
-                    ui.toast(`Sesión iniciada: ${comp?.name || 'Empresa'}`);
-                }
-            },
-
-            logout: () => {
-                appData.currentUser = null;
-                document.getElementById('loginForm').reset();
-                ui.hide('globalNav');
-                ui.hide('view-superadmin');
-                ui.hide('view-companyadmin');
-                ui.show('view-login');
-                ui.toast('Sesión cerrada exitosamente', 'info');
-            },
-
             createCompany: async (e) => {
                 e.preventDefault();
                 const name = document.getElementById('newCompName').value.trim();
@@ -1047,17 +1061,15 @@
                 e.preventDefault();
                 const compId = document.getElementById('newUserCompany').value;
                 const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
-                const pin = document.getElementById('newUserPin').value.trim();
 
                 if(appData.users.find(u => u.email === email)) return ui.toast('El correo ya existe', 'error');
 
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', email), {
-                    email, pin, role: 'COMPANY_ADMIN', companyId: compId
+                    email: email, role: 'COMPANY_ADMIN', companyId: compId
                 });
                 
                 document.getElementById('newUserEmail').value = '';
-                document.getElementById('newUserPin').value = '';
-                ui.toast('Usuario administrador creado');
+                ui.toast('Correo de Google autorizado con éxito');
             },
 
             renderSuperAdmin: () => {
@@ -1078,12 +1090,12 @@
                     return `
                     <li class="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center text-sm">
                         <div>
-                            <div class="font-bold text-slate-800">${utils.escapeHTML(u.email)}</div>
+                            <div class="font-bold text-slate-800 flex items-center gap-1.5"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-3.5 h-3.5"> ${utils.escapeHTML(u.email)}</div>
                             <div class="text-[10px] md:text-xs text-slate-500 mt-1 font-medium"><i data-lucide="building" class="w-3.5 h-3.5 inline mr-1 text-slate-400"></i>${utils.escapeHTML(compName)}</div>
                         </div>
-                        <div class="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg font-mono text-xs font-black shadow-sm tracking-wider" title="PIN de acceso">${utils.escapeHTML(u.pin)}</div>
+                        <span class="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded shadow-sm">Autorizado</span>
                     </li>`;
-                }).join('') || '<li class="text-sm text-slate-400 p-2 text-center">No hay administradores.</li>';
+                }).join('') || '<li class="text-sm text-slate-400 p-2 text-center">No hay administradores autorizados.</li>';
                 document.getElementById('usersList').innerHTML = usersHtml;
                 lucide.createIcons();
             },
@@ -1103,7 +1115,6 @@
                 }
             },
             
-            // --- NUEVO: FUNCIÓN PARA ABRIR EL MODO LECTURA ---
             viewEmployee: (id) => {
                 const emp = appData.employees.find(e => e.id === id);
                 if(emp) ui.openViewModal(emp);
@@ -1193,7 +1204,6 @@
                         const arl = utils.getArlStatus(emp.fechaArl, emp.duracionArl);
                         const avatarSrc = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
                         
-                        // NOTA: Se agrega `onclick="appState.viewEmployee"` al contenedor y `event.stopPropagation()` a los botones internos.
                         return `
                         <div onclick="appState.viewEmployee('${emp.id}')" class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3 fade-in cursor-pointer hover:shadow-md transition-all group">
                             <div class="flex justify-between items-start gap-3">
