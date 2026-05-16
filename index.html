@@ -162,6 +162,7 @@
 
                 <form id="publicEmployeeForm" onsubmit="appState.submitPublicForm(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 w-full max-w-full">
                     <input type="hidden" id="pubCompanyId">
+                    <input type="hidden" id="pubTokenId">
                     
                     <!-- FOTO DE PERFIL -->
                     <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center mb-4">
@@ -270,6 +271,18 @@
                 <p class="text-sm text-slate-600 mb-6 font-medium leading-relaxed">Tu información ha sido registrada exitosamente. Por motivos de seguridad, los datos han sido bloqueados y ya no pueden modificarse desde aquí.</p>
                 <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm font-bold text-slate-500">
                     Puedes cerrar esta pestaña con seguridad.
+                </div>
+            </div>
+
+            <!-- Pantalla de Error de Token -->
+            <div id="view-token-error" class="hidden-view bg-white p-8 rounded-[2rem] shadow-xl max-w-md w-full border border-slate-200 text-center relative overflow-hidden mt-10">
+                <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-600 mb-6 border-4 border-white shadow-lg">
+                    <i data-lucide="shield-off" class="w-10 h-10"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-800 mb-2">Enlace Invalido o Expirado</h2>
+                <p class="text-sm text-slate-600 mb-6 font-medium leading-relaxed">Este enlace de registro es de un solo uso y ya ha sido utilizado o ha expirado por motivos de seguridad. Por favor, solicita uno nuevo al administrador de tu empresa.</p>
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm font-bold text-slate-400">
+                    ID de Acceso Denegado
                 </div>
             </div>
         </div>
@@ -663,7 +676,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // =========================================================
         // ⚠️ ATENCIÓN: CONFIGURACIÓN DE TU BASE DE DATOS FIREBASE
@@ -935,13 +948,23 @@
                 }
 
                 const urlParams = new URLSearchParams(window.location.search);
-                const publicCompanyId = urlParams.get('form');
+                const publicToken = urlParams.get('token');
 
-                // Si entran por URL pública
-                if(publicCompanyId) {
+                // Si entran por URL pública (SISTEMA DE TOKENS UNICOS)
+                if(publicToken) {
                     ui.hide('view-login');
-                    ui.show('view-employee-form');
-                    document.getElementById('pubCompanyId').value = publicCompanyId;
+                    try {
+                        const tokenDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registration_links', publicToken));
+                        if (tokenDoc.exists() && tokenDoc.data().active === true) {
+                            ui.show('view-employee-form');
+                            document.getElementById('pubCompanyId').value = tokenDoc.data().companyId;
+                            document.getElementById('pubTokenId').value = publicToken;
+                        } else {
+                            ui.show('view-token-error');
+                        }
+                    } catch(e) {
+                        ui.show('view-token-error');
+                    }
                     return; 
                 }
 
@@ -951,7 +974,7 @@
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'companies'), snap => {
                     appData.companies = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     if(appData.currentUser?.role === 'SUPER_ADMIN') appState.renderSuperAdmin();
-                    if(appData.currentUser?.role === 'COMPANY_ADMIN') appState.routeUserAfterLogin(); // Para refrescar logo si cambia
+                    if(appData.currentUser?.role === 'COMPANY_ADMIN') appState.routeUserAfterLogin(); 
                 }, error => console.error("Error leyendo companies:", error));
 
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), async snap => {
@@ -965,14 +988,13 @@
                 }, error => console.error("Error leyendo employees:", error));
             },
 
-            // --- NUEVO LOGICA GOOGLE AUTH ---
+            // --- LOGICA GOOGLE AUTH ---
             loginWithGoogle: async () => {
                 const provider = new GoogleAuthProvider();
                 try {
                     const result = await signInWithPopup(auth, provider);
                     const email = result.user.email.toLowerCase();
 
-                    // 1. Si no hay ningún usuario en el sistema, el primero en logearse será el Super Admin
                     if (appData.users.length === 0) {
                         const superAdminData = { email: email, role: 'SUPER_ADMIN' };
                         await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', email), superAdminData);
@@ -982,28 +1004,20 @@
                         return;
                     }
 
-                    // 2. Si ya hay usuarios, validar si el correo actual existe en la base de datos
                     const userDoc = appData.users.find(u => u.email === email);
                     
                     if (!userDoc) {
-                        // Si no está autorizado, se cierra la sesión por seguridad
                         await signOut(auth);
                         return ui.toast('Acceso denegado. Este correo no está autorizado.', 'error');
                     }
 
-                    // Si está autorizado, asignamos los permisos
                     appData.currentUser = userDoc;
                     appState.routeUserAfterLogin();
                     
                 } catch (error) {
                     console.error("Error Auth Google:", error);
-                    // Ignorar error si el usuario simplemente cerró la ventana emergente
                     if(error.code !== 'auth/popup-closed-by-user') {
-                        if (error.code === 'auth/unauthorized-domain') {
-                            ui.toast("Error: Este dominio no está autorizado en Firebase para usar Google Auth.", "error");
-                        } else {
-                            ui.toast("Error de autenticación con Google", "error");
-                        }
+                        ui.toast("Error de autenticación con Google", "error");
                     }
                 }
             },
@@ -1017,12 +1031,8 @@
                 if (appData.currentUser.role === 'SUPER_ADMIN') {
                     document.getElementById('navUserRole').innerText = 'SUPER ADMIN';
                     document.getElementById('navSubtitle').innerText = 'Panel Maestro';
-                    
-                    // Resetear el logo al genérico para el Super Admin
                     document.getElementById('navDefaultIcon').classList.remove('hidden');
                     document.getElementById('navCompanyLogo').classList.add('hidden');
-                    document.getElementById('navCompanyLogo').src = '';
-
                     ui.show('view-superadmin');
                     appState.renderSuperAdmin();
                 } else if (appData.currentUser.role === 'COMPANY_ADMIN') {
@@ -1030,14 +1040,12 @@
                     document.getElementById('navUserRole').innerText = 'ADMIN EMPRESA';
                     document.getElementById('navSubtitle').innerText = comp ? comp.name : 'Portal Empresarial';
                     
-                    // Mostrar Logo de la Empresa en el Navbar si existe
                     if (comp && comp.logo) {
                         document.getElementById('navDefaultIcon').classList.add('hidden');
                         document.getElementById('navCompanyLogo').src = comp.logo;
                         document.getElementById('navCompanyLogo').classList.remove('hidden');
                     } else {
                         document.getElementById('navDefaultIcon').classList.remove('hidden');
-                        document.getElementById('navCompanyLogo').src = '';
                         document.getElementById('navCompanyLogo').classList.add('hidden');
                     }
 
@@ -1069,6 +1077,7 @@
 
                 try {
                     const compId = document.getElementById('pubCompanyId').value;
+                    const tokenId = document.getElementById('pubTokenId').value;
                     const cc = document.getElementById('pubCedula').value.trim();
                     const id = `emp_${Date.now()}_${cc}`;
 
@@ -1097,8 +1106,17 @@
                         fileArl: '' 
                     };
 
+                    // Guardar empleado
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), data);
                     
+                    // DESACTIVAR TOKEN (Un solo uso)
+                    if(tokenId) {
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registration_links', tokenId), {
+                            active: false,
+                            usedAt: new Date().toISOString()
+                        });
+                    }
+
                     document.getElementById('publicFormContainer').classList.add('hidden-view');
                     document.getElementById('publicSuccess').classList.remove('hidden-view');
                     window.scrollTo(0,0);
@@ -1133,7 +1151,6 @@
                     
                     document.getElementById('newCompName').value = '';
                     document.getElementById('newCompLogo').value = '';
-                    document.getElementById('newCompLogoPreview').src = '';
                     document.getElementById('newCompLogoPreview').classList.add('hidden');
                     ui.toast('Empresa creada con éxito');
                 } catch (error) {
@@ -1156,11 +1173,9 @@
                     preview.src = comp.logo;
                     preview.classList.remove('hidden');
                 } else {
-                    preview.src = '';
                     preview.classList.add('hidden');
                 }
                 document.getElementById('editCompLogo').value = '';
-                
                 ui.show('editCompanyModal');
             },
 
@@ -1196,13 +1211,9 @@
             deleteCompany: (id) => {
                 const comp = appData.companies.find(c => c.id === id);
                 if(!comp) return;
-                ui.openConfirm("Eliminar Empresa", `¿Estás seguro de que deseas eliminar permanentemente la empresa "${comp.name}"? Los datos y usuarios asociados podrían perder su referencia.`, async () => {
-                    try {
-                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'companies', id));
-                        ui.toast("Empresa eliminada exitosamente");
-                    } catch (e) {
-                        ui.toast('Error al eliminar empresa', 'error');
-                    }
+                ui.openConfirm("Eliminar Empresa", `¿Estás seguro?`, async () => {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'companies', id));
+                    ui.toast("Empresa eliminada");
                 });
             },
 
@@ -1210,25 +1221,18 @@
                 e.preventDefault();
                 const compId = document.getElementById('newUserCompany').value;
                 const email = document.getElementById('newUserEmail').value.trim().toLowerCase();
-
                 if(appData.users.find(u => u.email === email)) return ui.toast('El correo ya existe', 'error');
-
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', email), {
                     email: email, role: 'COMPANY_ADMIN', companyId: compId
                 });
-                
                 document.getElementById('newUserEmail').value = '';
-                ui.toast('Correo de Google autorizado con éxito');
+                ui.toast('Correo autorizado');
             },
 
             deleteUser: (email) => {
-                ui.openConfirm("Revocar Acceso", `¿Estás seguro de que deseas revocar permanentemente el acceso al correo "${email}"?`, async () => {
-                    try {
-                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', email));
-                        ui.toast("Acceso revocado exitosamente");
-                    } catch (e) {
-                        ui.toast('Error al revocar acceso', 'error');
-                    }
+                ui.openConfirm("Revocar Acceso", `¿Estás seguro?`, async () => {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', email));
+                    ui.toast("Acceso revocado");
                 });
             },
 
@@ -1236,18 +1240,12 @@
                 const compHtml = appData.companies.map(c => `
                     <li class="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center text-sm gap-3">
                         <div class="flex items-center gap-3 flex-1 min-w-0">
-                            ${c.logo 
-                                ? `<img src="${c.logo}" class="w-10 h-10 rounded-xl object-cover shadow-sm flex-shrink-0 border border-slate-200 bg-white">`
-                                : `<div class="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-500 flex-shrink-0 border border-indigo-200"><i data-lucide="building" class="w-5 h-5"></i></div>`
-                            }
-                            <div class="flex-1 min-w-0">
-                                <span class="font-bold text-slate-700 truncate block text-base">${utils.escapeHTML(c.name)}</span>
-                                <span class="text-[10px] text-slate-400 font-mono mt-0.5 block">ID: ${c.id.substring(0,8)}</span>
-                            </div>
+                            ${c.logo ? `<img src="${c.logo}" class="w-10 h-10 rounded-xl object-cover border border-slate-200">` : `<div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-500"><i data-lucide="building" class="w-5 h-5"></i></div>`}
+                            <span class="font-bold text-slate-700 truncate">${utils.escapeHTML(c.name)}</span>
                         </div>
-                        <div class="flex gap-1 flex-shrink-0">
-                            <button onclick="appState.editCompany('${c.id}')" class="p-2.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors" title="Editar Empresa"><i data-lucide="edit" class="w-5 h-5"></i></button>
-                            <button onclick="appState.deleteCompany('${c.id}')" class="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors" title="Eliminar Empresa"><i data-lucide="trash-2" class="w-5 h-5"></i></button>
+                        <div class="flex gap-1">
+                            <button onclick="appState.editCompany('${c.id}')" class="p-2 text-slate-400 hover:text-indigo-600"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                            <button onclick="appState.deleteCompany('${c.id}')" class="p-2 text-slate-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
                     </li>
                 `).join('') || '<li class="text-sm text-slate-400 p-2 text-center">No hay empresas.</li>';
@@ -1259,35 +1257,39 @@
 
                 const usersHtml = appData.users.filter(u => u.role === 'COMPANY_ADMIN').map(u => {
                     const compName = appData.companies.find(c => c.id === u.companyId)?.name || 'Desconocida';
-                    return `
-                    <li class="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center text-sm gap-2">
-                        <div class="flex-1 min-w-0">
-                            <div class="font-bold text-slate-800 flex items-center gap-1.5 truncate"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-3.5 h-3.5 flex-shrink-0"> <span class="truncate">${utils.escapeHTML(u.email)}</span></div>
-                            <div class="text-[10px] md:text-xs text-slate-500 mt-0.5 font-medium truncate"><i data-lucide="building" class="w-3.5 h-3.5 inline mr-1 text-slate-400"></i>${utils.escapeHTML(compName)}</div>
-                        </div>
-                        <div class="flex items-center gap-2 flex-shrink-0">
-                            <span class="hidden md:inline-block text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded shadow-sm">Autorizado</span>
-                            <button onclick="appState.deleteUser('${u.email}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Revocar Acceso"><i data-lucide="user-x" class="w-4 h-4"></i></button>
-                        </div>
-                    </li>`;
-                }).join('') || '<li class="text-sm text-slate-400 p-2 text-center">No hay administradores autorizados.</li>';
+                    return `<li class="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center text-sm"><div><div class="font-bold text-slate-800">${utils.escapeHTML(u.email)}</div><div class="text-[10px] text-slate-500">${utils.escapeHTML(compName)}</div></div><button onclick="appState.deleteUser('${u.email}')" class="p-2 text-slate-400 hover:text-red-600"><i data-lucide="user-x" class="w-4 h-4"></i></button></li>`;
+                }).join('');
                 document.getElementById('usersList').innerHTML = usersHtml;
                 lucide.createIcons();
             },
 
-            // --- COMPANY ADMIN CRUD ---
-            generateRegistrationLink: () => {
+            // --- GESTION DE ENLACES UNICOS (SEGURIDAD) ---
+            generateRegistrationLink: async () => {
                 if(!appData.currentUser || !appData.currentUser.companyId) return;
-                const link = `${window.location.origin}${window.location.pathname}?form=${appData.currentUser.companyId}`;
                 
-                if (navigator.clipboard && window.isSecureContext) {
-                    navigator.clipboard.writeText(link).then(() => {
-                        ui.toast("Enlace copiado. Compártelo en WhatsApp o Correo.", "info");
-                    }).catch(() => {
-                        prompt("Mantén presionado para copiar el enlace:", link);
+                // Generar Token Único
+                const token = crypto.randomUUID();
+                
+                ui.toast("Generando enlace único...", "info");
+
+                try {
+                    // Guardar el token en la BD como activo
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registration_links', token), {
+                        companyId: appData.currentUser.companyId,
+                        active: true,
+                        createdAt: new Date().toISOString()
                     });
-                } else {
-                    prompt("Mantén presionado para copiar el enlace:", link);
+
+                    const link = `${window.location.origin}${window.location.pathname}?token=${token}`;
+                    
+                    if (navigator.clipboard) {
+                        await navigator.clipboard.writeText(link);
+                        ui.toast("Enlace ÚNICO copiado. Expira al usarse.", "success");
+                    } else {
+                        prompt("Copia este enlace de un solo uso:", link);
+                    }
+                } catch(e) {
+                    ui.toast("Error al generar enlace seguro", "error");
                 }
             },
             
@@ -1306,25 +1308,21 @@
                 if(!appData.currentUser || !appData.currentUser.companyId) return;
                 const btn = document.getElementById('saveEmployeeBtn');
                 btn.disabled = true;
-
                 try {
                     const id = document.getElementById('empId').value || `emp_${Date.now()}`;
-                    
                     const fCedula = document.getElementById('empFileCedula').files[0];
                     const fArl = document.getElementById('empFileArl').files[0];
                     const fFoto = document.getElementById('empFileFoto').files[0];
-                    
-                    let base64Cedula = document.getElementById('empFileCedulaBase64').value; 
-                    let base64Arl = document.getElementById('empFileArlBase64').value;
-                    let base64Foto = document.getElementById('empFileFotoBase64').value;
-
-                    if(fFoto) base64Foto = await utils.compressImage(fFoto);
-                    if(fCedula) base64Cedula = await fileToBase64(fCedula);
-                    if(fArl) base64Arl = await fileToBase64(fArl);
+                    let bCedula = document.getElementById('empFileCedulaBase64').value; 
+                    let bArl = document.getElementById('empFileArlBase64').value;
+                    let bFoto = document.getElementById('empFileFotoBase64').value;
+                    if(fFoto) bFoto = await utils.compressImage(fFoto);
+                    if(fCedula) bCedula = await fileToBase64(fCedula);
+                    if(fArl) bArl = await fileToBase64(fArl);
 
                     const data = {
                         companyId: appData.currentUser.companyId,
-                        fotoPerfil: base64Foto || '',
+                        fotoPerfil: bFoto || '',
                         nombres: document.getElementById('empNombres').value.trim(),
                         apellidos: document.getElementById('empApellidos').value.trim(),
                         cedula: document.getElementById('empCedula').value.trim(),
@@ -1337,137 +1335,45 @@
                         correo: document.getElementById('empCorreo').value.trim(),
                         direccion: document.getElementById('empDir').value.trim(),
                         contactoEmergencia: document.getElementById('empEmergencia').value.trim(),
-                        fileCedula: base64Cedula || '',
-                        fileArl: base64Arl || ''
+                        fileCedula: bCedula || '',
+                        fileArl: bArl || ''
                     };
-
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), data);
                     ui.closeEmployeeModal();
-                    ui.toast('Cambios guardados exitosamente');
-                } catch(err) {
-                    ui.toast(err.toString(), "error");
-                } finally {
-                    btn.disabled = false;
-                }
+                    ui.toast('Guardado exitoso');
+                } catch(err) { ui.toast("Error", "error"); } finally { btn.disabled = false; }
             },
 
             deleteEmployee: (id) => {
-                ui.openConfirm("Borrar Perfil", "¿Seguro que deseas eliminar permanentemente a este empleado de la empresa?", async () => {
+                ui.openConfirm("Borrar", "¿Eliminar empleado?", async () => {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id));
-                    ui.toast("Perfil eliminado correctamente");
+                    ui.toast("Eliminado");
                 });
             },
 
             renderEmployees: () => {
                 if(!appData.currentUser) return;
                 const search = document.getElementById('searchInput').value.toLowerCase();
-                
-                const myEmps = appData.employees.filter(e => 
-                    e.companyId === appData.currentUser.companyId &&
-                    (e.nombres.toLowerCase().includes(search) || e.cedula.includes(search))
-                );
-
+                const myEmps = appData.employees.filter(e => e.companyId === appData.currentUser.companyId && (e.nombres.toLowerCase().includes(search) || e.cedula.includes(search)));
                 document.getElementById('empCount').innerText = `${myEmps.length} Registros`;
-
-                let desktopHtml = '';
-                let mobileHtml = '';
-
+                let dHtml = ''; let mHtml = '';
                 if (myEmps.length === 0) {
-                    desktopHtml = '<tr><td colSpan="5" class="p-12 text-center text-slate-400 font-medium bg-slate-50">No hay empleados. Usa el enlace o sube un Excel.</td></tr>';
-                    mobileHtml = '<div class="p-8 text-center text-slate-400 text-sm font-medium bg-slate-50 border border-slate-100 rounded-2xl">No hay empleados registrados.</div>';
+                    dHtml = '<tr><td colSpan="5" class="p-12 text-center text-slate-400 bg-slate-50">Sin registros.</td></tr>';
+                    mHtml = '<div class="p-8 text-center text-slate-400 text-sm">Sin registros.</div>';
                 } else {
-                    mobileHtml = myEmps.map(emp => {
+                    mHtml = myEmps.map(emp => {
                         const arl = utils.getArlStatus(emp.fechaArl, emp.duracionArl);
-                        const avatarSrc = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
-                        
-                        return `
-                        <div onclick="appState.viewEmployee('${emp.id}')" class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3 fade-in cursor-pointer hover:shadow-md transition-all group">
-                            <div class="flex justify-between items-start gap-3">
-                                <div class="flex gap-3 overflow-hidden items-center">
-                                    <img src="${avatarSrc}" class="w-12 h-12 rounded-full object-cover shadow-sm border border-slate-200 flex-shrink-0" alt="Foto">
-                                    <div class="overflow-hidden">
-                                        <h3 class="font-black text-slate-800 text-lg leading-tight truncate group-hover:text-indigo-600 transition-colors">${utils.escapeHTML(emp.nombres)} ${utils.escapeHTML(emp.apellidos)}</h3>
-                                        <p class="text-xs text-slate-500 font-mono mt-0.5 font-semibold tracking-wide">CC: ${utils.escapeHTML(emp.cedula)}</p>
-                                    </div>
-                                </div>
-                                <div class="flex gap-1.5 flex-shrink-0">
-                                    <button onclick="event.stopPropagation(); appState.editEmployee('${emp.id}')" class="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 active:scale-90 transition-all"><i data-lucide="edit" class="w-4 h-4"></i></button>
-                                </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs font-medium text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                <a href="tel:${utils.escapeHTML(emp.telefono)}" onclick="event.stopPropagation()" class="flex items-center gap-1.5 text-indigo-600 truncate hover:underline"><i data-lucide="phone" class="w-3.5 h-3.5 text-indigo-400"></i> ${utils.escapeHTML(emp.telefono)}</a>
-                                <div class="flex items-center gap-1.5 truncate"><i data-lucide="cake" class="w-3.5 h-3.5 text-slate-400"></i> ${utils.escapeHTML(emp.cumpleanos)}</div>
-                                <a href="mailto:${utils.escapeHTML(emp.correo)}" onclick="event.stopPropagation()" class="col-span-2 flex items-center gap-1.5 truncate hover:underline"><i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i> ${utils.escapeHTML(emp.correo)}</a>
-                            </div>
-
-                            <div class="flex justify-between items-center mt-1 pt-3 border-t border-slate-100">
-                                <div class="flex flex-col">
-                                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wide flex items-center">
-                                        <i data-lucide="shield" class="w-3.5 h-3.5 mr-1 text-slate-400"></i>ARL <span class="px-2 py-0.5 ml-2 rounded-full text-[9px] ${arl.bg} ${arl.color} flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full ${arl.dot}"></span>${arl.status}</span>
-                                    </div>
-                                    <div class="text-[9px] text-slate-400 mt-1 ml-5">${emp.fechaArl ? emp.fechaArl + ' ('+emp.duracionArl+')' : 'Sin fecha'}</div>
-                                </div>
-                                <div class="flex gap-2">
-                                    ${emp.fileCedula ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" class="p-2.5 bg-slate-800 text-white shadow-md rounded-xl active:scale-90 transition-all"><i data-lucide="id-card" class="w-4 h-4"></i></button>` : `<div class="p-2.5 bg-slate-100 text-slate-300 rounded-xl"><i data-lucide="id-card" class="w-4 h-4"></i></div>`}
-                                    ${emp.fileArl ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" class="p-2.5 bg-emerald-600 text-white shadow-md rounded-xl active:scale-90 transition-all"><i data-lucide="file-check-2" class="w-4 h-4"></i></button>` : `<div class="p-2.5 bg-slate-100 text-slate-300 rounded-xl"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>`}
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                        const avatar = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
+                        return `<div onclick="appState.viewEmployee('${emp.id}')" class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3"><div class="flex justify-between items-start gap-3"><div class="flex gap-3 items-center"><img src="${avatar}" class="w-12 h-12 rounded-full object-cover border border-slate-200 flex-shrink-0"><div><h3 class="font-black text-slate-800 text-lg leading-tight truncate">${utils.escapeHTML(emp.nombres)}</h3><p class="text-xs text-slate-500 font-mono tracking-wide">CC: ${utils.escapeHTML(emp.cedula)}</p></div></div><button onclick="event.stopPropagation(); appState.editEmployee('${emp.id}')" class="p-2 text-slate-400"><i data-lucide="edit" class="w-4 h-4"></i></button></div><div class="flex justify-between items-center mt-1 pt-3 border-t border-slate-100"><div><div class="text-[10px] font-bold text-slate-500 flex items-center">ARL <span class="px-2 py-0.5 ml-2 rounded-full ${arl.bg} ${arl.color}">${arl.status}</span></div></div><div class="flex gap-2">${emp.fileCedula ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileCedula}', 'CC.pdf')" class="p-2 bg-slate-800 text-white rounded-lg"><i data-lucide="id-card" class="w-4 h-4"></i></button>`:''}</div></div></div>`;
                     }).join('');
-
-                    desktopHtml = myEmps.map(emp => {
+                    dHtml = myEmps.map(emp => {
                         const arl = utils.getArlStatus(emp.fechaArl, emp.duracionArl);
-                        const avatarSrc = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
-
-                        return `
-                        <tr onclick="appState.viewEmployee('${emp.id}')" class="hover:bg-indigo-50/50 transition-colors group cursor-pointer border-b border-slate-100 last:border-0">
-                            <td class="p-4">
-                                <div class="flex items-center gap-3">
-                                    <img src="${avatarSrc}" class="w-10 h-10 rounded-full object-cover shadow-sm border border-slate-200">
-                                    <div>
-                                        <div class="font-bold text-slate-800 group-hover:text-indigo-700 transition-colors">${utils.escapeHTML(emp.nombres)} ${utils.escapeHTML(emp.apellidos)}</div>
-                                        <div class="text-xs text-slate-500 font-mono mt-1">CC: ${utils.escapeHTML(emp.cedula)}</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="p-4">
-                                <div class="text-sm text-slate-600 mb-1 flex items-center"><i data-lucide="phone" class="w-3 h-3 mr-2 text-slate-400"></i> <a href="tel:${utils.escapeHTML(emp.telefono)}" onclick="event.stopPropagation()" class="hover:text-indigo-600 hover:underline">${utils.escapeHTML(emp.telefono)}</a></div>
-                                <div class="text-xs text-slate-500 flex items-center"><i data-lucide="mail" class="w-3 h-3 mr-2 text-slate-400"></i> <a href="mailto:${utils.escapeHTML(emp.correo)}" onclick="event.stopPropagation()" class="hover:text-indigo-600 hover:underline">${utils.escapeHTML(emp.correo)}</a></div>
-                            </td>
-                            <td class="p-4">
-                                <div class="flex flex-col gap-1.5">
-                                    <div class="flex gap-2">
-                                        <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] uppercase font-bold border border-emerald-200">${utils.escapeHTML(emp.eps)}</span>
-                                        <span class="px-2 py-0.5 bg-red-100 text-red-800 rounded text-[10px] uppercase font-bold border border-red-200">RH: ${utils.escapeHTML(emp.tipoSangre)}</span>
-                                    </div>
-                                    <div class="flex items-center mt-1">
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] uppercase font-bold ${arl.bg} ${arl.color} border border-current opacity-80 flex items-center gap-1.5">
-                                            <span class="w-1.5 h-1.5 rounded-full ${arl.dot}"></span> ARL: ${arl.status}
-                                        </span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="p-4 text-center">
-                                <div class="flex justify-center gap-2">
-                                    ${emp.fileCedula ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" title="Ver Cédula" class="p-2 bg-slate-800 text-white hover:bg-slate-700 rounded-lg shadow-sm transition-all"><i data-lucide="id-card" class="w-4 h-4"></i></button>` : `<div class="p-2 bg-slate-50 text-slate-300 rounded-lg border border-slate-100"><i data-lucide="id-card" class="w-4 h-4"></i></div>`}
-                                    ${emp.fileArl ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" title="Ver ARL" class="p-2 bg-emerald-600 text-white hover:bg-emerald-500 rounded-lg shadow-sm transition-all"><i data-lucide="file-check-2" class="w-4 h-4"></i></button>` : `<div class="p-2 bg-slate-50 text-slate-300 rounded-lg border border-slate-100"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>`}
-                                </div>
-                            </td>
-                            <td class="p-4">
-                                <div class="flex justify-end gap-2 text-slate-500">
-                                    <button onclick="event.stopPropagation(); appState.editEmployee('${emp.id}')" title="Editar Ficha" class="p-2 text-slate-400 bg-slate-50 hover:bg-indigo-100 hover:text-indigo-600 rounded-lg transition-colors"><i data-lucide="edit" class="w-4 h-4"></i></button>
-                                    <button onclick="event.stopPropagation(); appState.deleteEmployee('${emp.id}')" title="Eliminar Ficha" class="p-2 text-slate-400 bg-slate-50 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                        const avatar = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
+                        return `<tr onclick="appState.viewEmployee('${emp.id}')" class="hover:bg-indigo-50/50 cursor-pointer border-b border-slate-100"><td class="p-4 flex items-center gap-3"><img src="${avatar}" class="w-10 h-10 rounded-full object-cover"><div><div class="font-bold text-slate-800">${utils.escapeHTML(emp.nombres)}</div><div class="text-xs text-slate-500 font-mono">CC: ${utils.escapeHTML(emp.cedula)}</div></div></td><td class="p-4 text-sm text-slate-600">${utils.escapeHTML(emp.telefono)}</td><td class="p-4"><div><span class="px-2 py-0.5 rounded text-[10px] font-bold ${arl.bg} ${arl.color}">${arl.status}</span></div></td><td class="p-4 text-center"><div class="flex justify-center gap-2">${emp.fileCedula ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileCedula}', 'CC.pdf')" class="p-2 bg-slate-800 text-white rounded-lg"><i data-lucide="id-card" class="w-4 h-4"></i></button>` : ''}</div></td><td class="p-4 text-right"><button onclick="event.stopPropagation(); appState.editEmployee('${emp.id}')" class="p-2 text-slate-400"><i data-lucide="edit" class="w-4 h-4"></i></button></td></tr>`;
                     }).join('');
                 }
-
-                document.getElementById('employeesTableBody').innerHTML = desktopHtml;
-                document.getElementById('employeesMobileList').innerHTML = mobileHtml;
+                document.getElementById('employeesTableBody').innerHTML = dHtml;
+                document.getElementById('employeesMobileList').innerHTML = mHtml;
                 lucide.createIcons();
             },
 
@@ -1475,75 +1381,31 @@
                 const headers = ["Nombres", "Apellidos", "Cedula", "Cumpleanos", "EPS", "Tipo_Sangre", "Telefono", "Correo", "Direccion", "Emergencia"];
                 const wb = XLSX.utils.book_new();
                 const ws = XLSX.utils.aoa_to_sheet([headers]);
-                ws['!cols'] = Array(headers.length).fill({ wch: 20 });
-                XLSX.utils.book_append_sheet(wb, ws, "Plantilla_Estricta");
-                XLSX.writeFile(wb, "Plantilla_ProHR.xlsx");
+                XLSX.utils.book_append_sheet(wb, ws, "Plantilla");
+                XLSX.writeFile(wb, "Plantilla_RRHH.xlsx");
             },
 
             handleExcelUpload: async (e) => {
                 const file = e.target.files[0];
                 if(!file || !appData.currentUser?.companyId) return;
-
-                ui.toast("Procesando Excel...", "info");
                 const reader = new FileReader();
-                
                 reader.onload = async (evt) => {
-                    try {
-                        const data = new Uint8Array(evt.target.result);
-                        const workbook = XLSX.read(data, {type: 'array'});
-                        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                        
-                        const json = XLSX.utils.sheet_to_json(worksheet, {header: 1}); 
-
-                        if(json.length <= 1) return ui.toast("El Excel está vacío", "error");
-
-                        let count = 0;
-                        const fmtDate = (d) => {
-                            if(!d) return "";
-                            if(typeof d === 'string' && d.includes('/')) {
-                                let p = d.split('/');
-                                if(p.length === 3 && p[2].length === 4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
-                            }
-                            return d;
-                        };
-
-                        for(let i = 1; i < json.length; i++) {
-                            const row = json[i];
-                            if(!row || row.length === 0 || !row[0]) continue; 
-
-                            const nom = row[0]; 
-                            const cc = row[2];  
-
-                            if(nom && cc) {
-                                const id = `emp_${Date.now()}_${cc}`;
-                                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), {
-                                    companyId: appData.currentUser.companyId,
-                                    fotoPerfil: '',
-                                    nombres: nom ? String(nom).trim() : '',
-                                    apellidos: row[1] ? String(row[1]).trim() : '',
-                                    cedula: String(cc).trim(),
-                                    cumpleanos: fmtDate(row[3]),
-                                    eps: row[4] ? String(row[4]).trim() : '',
-                                    tipoSangre: row[5] ? String(row[5]).trim() : '',
-                                    fechaArl: '', 
-                                    duracionArl: 'No activo',
-                                    telefono: row[6] ? String(row[6]).trim() : '',
-                                    correo: row[7] ? String(row[7]).trim() : '',
-                                    direccion: row[8] ? String(row[8]).trim() : '',
-                                    contactoEmergencia: row[9] ? String(row[9]).trim() : '',
-                                    fileCedula: '',
-                                    fileArl: ''
-                                });
-                                count++;
-                            }
-                        }
-                        ui.toast(`¡${count} empleados importados!`, "success");
-                    } catch(err) {
-                        console.error(err);
-                        ui.toast("Error leyendo documento", "error");
-                    } finally {
-                        e.target.value = ''; 
+                    const data = new Uint8Array(evt.target.result);
+                    const wb = XLSX.read(data, {type: 'array'});
+                    const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                    let c = 0;
+                    for(const row of json) {
+                        const id = `emp_${Date.now()}_${row.Cedula}`;
+                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), {
+                            companyId: appData.currentUser.companyId,
+                            fotoPerfil: '', nombres: row.Nombres||'', apellidos: row.Apellidos||'', cedula: String(row.Cedula),
+                            cumpleanos: row.Cumpleanos||'', eps: row.EPS||'', tipoSangre: row.Tipo_Sangre||'',
+                            fechaArl: '', duracionArl: 'No activo', telefono: String(row.Telefono||''), correo: row.Correo||'', direccion: row.Direccion||'', contactoEmergencia: row.Emergencia||'',
+                            fileCedula: '', fileArl: ''
+                        });
+                        c++;
                     }
+                    ui.toast(`Importados ${c} registros`);
                 };
                 reader.readAsArrayBuffer(file);
             }
