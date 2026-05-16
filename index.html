@@ -410,7 +410,82 @@
             </div>
         </div>
 
-        <!-- Modal Formulario Empleado RRHH (Estilo Ficha Técnica) -->
+        <!-- ========================================== -->
+        <!-- MODAL: VISTA PREVIA FICHA TÉCNICA (SOLO LECTURA) -->
+        <!-- ========================================== -->
+        <div id="viewEmployeeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden-view flex items-end sm:items-center justify-center sm:p-4">
+            <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl h-[85vh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden slide-up-mobile sm:fade-in relative pb-safe">
+                
+                <div class="w-full flex justify-center pt-3 pb-1 sm:hidden">
+                    <div class="w-12 h-1.5 bg-slate-200 rounded-full"></div>
+                </div>
+
+                <div class="px-5 md:px-6 py-3 md:py-4 border-b flex justify-between items-center bg-white sm:bg-slate-50 w-full">
+                    <h2 class="text-xl md:text-2xl font-black text-slate-800">Vista Ficha Técnica</h2>
+                    <div class="flex gap-2">
+                        <!-- Botón flotante para editar -->
+                        <button id="viewModalEditBtn" class="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-full transition-colors active:scale-90" title="Editar Información"><i data-lucide="edit" class="w-5 h-5"></i></button>
+                        <button onclick="ui.closeViewModal()" class="text-slate-400 hover:text-red-500 p-2 bg-slate-50 hover:bg-red-50 rounded-full transition-colors active:scale-90"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
+                </div>
+                
+                <div class="p-5 md:p-6 overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar w-full space-y-6">
+                    
+                    <!-- Profile Header -->
+                    <div class="flex items-center gap-4 border-b border-slate-100 pb-4">
+                        <img id="viewFoto" src="" class="w-20 h-20 rounded-full object-cover border-2 border-slate-200 shadow-sm flex-shrink-0">
+                        <div class="overflow-hidden">
+                            <h3 id="viewNombres" class="text-xl font-black text-slate-800 leading-tight truncate"></h3>
+                            <p id="viewCedula" class="text-sm text-slate-500 font-mono mt-1 font-semibold tracking-wide"></p>
+                        </div>
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Info Personal -->
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i data-lucide="user" class="w-3.5 h-3.5"></i> Datos de Contacto</h4>
+                            <div class="space-y-2.5 text-sm">
+                                <p class="flex justify-between items-center"><span class="text-slate-500 font-medium text-xs">Nacimiento:</span> <span id="viewCumple" class="font-bold text-slate-700 text-right"></span></p>
+                                <p class="flex justify-between items-center"><span class="text-slate-500 font-medium text-xs">Teléfono:</span> <span id="viewTel" class="font-bold text-slate-700 text-right"></span></p>
+                                <p class="flex flex-col"><span class="text-slate-500 font-medium text-xs mb-0.5">Correo Electrónico:</span> <span id="viewCorreo" class="font-bold text-slate-700 break-words leading-tight"></span></p>
+                                <p class="flex flex-col"><span class="text-slate-500 font-medium text-xs mb-0.5">Dirección:</span> <span id="viewDir" class="font-bold text-slate-700 break-words leading-tight"></span></p>
+                                <p class="flex flex-col"><span class="text-slate-500 font-medium text-xs mb-0.5">Emergencia:</span> <span id="viewEmergencia" class="font-bold text-slate-700 break-words leading-tight text-red-600"></span></p>
+                            </div>
+                        </div>
+
+                        <!-- Salud y ARL -->
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i> Salud y Seguridad</h4>
+                            <div class="space-y-2.5 text-sm">
+                                <p class="flex justify-between items-center"><span class="text-slate-500 font-medium text-xs">EPS Actual:</span> <span id="viewEps" class="font-black text-slate-700 uppercase"></span></p>
+                                <p class="flex justify-between items-center"><span class="text-slate-500 font-medium text-xs">Tipo de Sangre:</span> <span id="viewSangre" class="font-black text-red-600"></span></p>
+                                
+                                <div class="pt-3 border-t border-slate-200 mt-3">
+                                    <p class="text-[10px] uppercase font-bold text-slate-400 mb-2">Estado de ARL</p>
+                                    <div id="viewArlBadge" class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black border"></div>
+                                    <p id="viewArlDetalle" class="text-[11px] font-medium text-slate-500 mt-1.5"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Documentos Descargables -->
+                    <div>
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i data-lucide="folder-down" class="w-3.5 h-3.5"></i> Documentos Adjuntos</h4>
+                        <div id="viewDocsContainer" class="flex flex-col sm:flex-row gap-3">
+                            <!-- Botones insertados por JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- MODAL: FORMULARIO EDICIÓN / NUEVO EMPLEADO -->
+        <!-- ========================================== -->
         <div id="employeeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden-view flex items-end sm:items-center justify-center sm:p-4">
             
             <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-4xl h-[92vh] sm:h-auto sm:max-h-[95vh] flex flex-col overflow-hidden slide-up-mobile sm:fade-in relative pb-safe">
@@ -420,7 +495,10 @@
                 </div>
 
                 <div class="px-5 md:px-6 py-3 md:py-4 border-b flex justify-between items-center bg-white sm:bg-slate-50 w-full">
-                    <h2 id="empModalTitle" class="text-xl md:text-2xl font-black text-slate-800">Ficha Técnica</h2>
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="edit-3" class="w-5 h-5 text-indigo-500"></i>
+                        <h2 id="empModalTitle" class="text-xl md:text-2xl font-black text-slate-800">Modo Edición</h2>
+                    </div>
                     <button onclick="ui.closeEmployeeModal()" class="text-slate-400 hover:text-red-500 p-2 bg-slate-50 hover:bg-red-50 rounded-full transition-colors active:scale-90"><i data-lucide="x" class="w-6 h-6"></i></button>
                 </div>
                 
@@ -436,7 +514,7 @@
                                 <img id="empAvatarPreview" src="" alt="Avatar" class="hidden">
                                 <input type="hidden" id="empFileFotoBase64">
                             </div>
-                            <p class="text-[10px] text-slate-400 mt-2 font-medium">Foto del empleado (Opcional)</p>
+                            <p class="text-[10px] text-slate-400 mt-2 font-medium">Actualizar foto (Opcional)</p>
                         </div>
 
                         <!-- Info Personal -->
@@ -499,7 +577,7 @@
                                 </select>
                             </div>
                             <div class="col-span-1 md:col-span-2 w-full mt-2">
-                                <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Subir Certificado ARL (PDF - Máx 500KB)</label>
+                                <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Subir/Actualizar Certificado ARL (PDF)</label>
                                 <div class="relative w-full">
                                     <input type="file" id="empFileArl" accept="application/pdf" class="w-full px-4 py-2 bg-white border-2 border-slate-200 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 cursor-pointer">
                                 </div>
@@ -534,7 +612,7 @@
                         </div>
                         
                         <div class="col-span-1 md:col-span-2 w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Cédula PDF (Máx 500KB)</label>
+                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Actualizar Cédula PDF (Opcional)</label>
                             <div class="relative w-full">
                                 <input type="file" id="empFileCedula" accept="application/pdf" class="w-full px-4 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-100 file:text-indigo-700 cursor-pointer">
                             </div>
@@ -544,7 +622,7 @@
                         <!-- Botones inferiores -->
                         <div class="col-span-1 md:col-span-2 flex flex-col-reverse md:flex-row justify-end gap-3 pt-6 pb-4 md:pb-0 mt-4 border-t border-slate-100 w-full">
                             <button type="button" onclick="ui.closeEmployeeModal()" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors active:scale-95">Cancelar</button>
-                            <button type="submit" id="saveEmployeeBtn" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 active:scale-95">Guardar Ficha Técnica</button>
+                            <button type="submit" id="saveEmployeeBtn" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 active:scale-95">Guardar Cambios</button>
                         </div>
                     </form>
                 </div>
@@ -619,7 +697,6 @@
                     ui.toast("Error al abrir el documento", "error");
                 }
             },
-            // Compresor de fotos en tiempo real para ahorrar espacio en BD
             compressImage: (file) => new Promise((resolve, reject) => {
                 if(!file) return resolve('');
                 const reader = new FileReader();
@@ -629,7 +706,7 @@
                     img.src = event.target.result;
                     img.onload = () => {
                         const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 300; // Avatar pequeño y ligero
+                        const MAX_WIDTH = 300; 
                         const scaleSize = MAX_WIDTH / img.width;
                         canvas.width = MAX_WIDTH;
                         canvas.height = img.height * scaleSize;
@@ -652,13 +729,10 @@
                     reader.readAsDataURL(file);
                 }
             },
-            // Lógica inteligente para calcular el estado de la ARL
             getArlStatus: (fecha, duracion) => {
                 if (!fecha || duracion === 'No activo') {
                     return { status: 'NO ACTIVA', color: 'text-red-600', bg: 'bg-red-100', dot: 'bg-red-500' };
                 }
-                
-                // Tratar fechas para evitar bugs de zona horaria
                 const startParts = fecha.split('-');
                 const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2], 0, 0, 0);
                 const now = new Date();
@@ -670,7 +744,6 @@
                     endDate.setMonth(endDate.getMonth() + 1);
                 }
 
-                // Fijar hora de fin del día limite
                 endDate.setHours(23, 59, 59, 999);
 
                 if (now > endDate) {
@@ -711,15 +784,61 @@
                 document.getElementById('confirmModal').style.display = 'flex';
             },
             closeConfirm: () => { ui.hide('confirmModal'); },
+            
+            // --- NUEVO: ABRIR MODAL DE VISTA PREVIA (SOLO LECTURA) ---
+            openViewModal: (emp) => {
+                document.getElementById('viewNombres').innerText = emp.nombres + ' ' + emp.apellidos;
+                document.getElementById('viewCedula').innerText = 'CC: ' + emp.cedula;
+                document.getElementById('viewCumple').innerText = emp.cumpleanos || 'No registrado';
+                document.getElementById('viewTel').innerText = emp.telefono || 'No registrado';
+                document.getElementById('viewCorreo').innerText = emp.correo || 'No registrado';
+                document.getElementById('viewDir').innerText = emp.direccion || 'No registrado';
+                document.getElementById('viewEmergencia').innerText = emp.contactoEmergencia || 'No registrado';
+                document.getElementById('viewEps').innerText = emp.eps || 'No registrado';
+                document.getElementById('viewSangre').innerText = emp.tipoSangre || 'N/A';
+
+                const avatarSrc = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
+                document.getElementById('viewFoto').src = avatarSrc;
+
+                const arl = utils.getArlStatus(emp.fechaArl, emp.duracionArl);
+                const arlBadge = document.getElementById('viewArlBadge');
+                arlBadge.className = `inline-flex items-center px-2.5 py-1 rounded-md text-[10px] uppercase font-black border opacity-90 gap-1.5 ${arl.bg} ${arl.color}`;
+                arlBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${arl.dot}"></span> ${arl.status}`;
+                document.getElementById('viewArlDetalle').innerText = emp.fechaArl ? `${emp.fechaArl} (${emp.duracionArl})` : 'Sin fecha de vinculación registrada';
+
+                let docsHtml = '';
+                if(emp.fileCedula) {
+                    docsHtml += `<button onclick="utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" class="flex-1 bg-indigo-50 text-indigo-700 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-indigo-100 transition-colors border border-indigo-100 shadow-sm active:scale-95"><i data-lucide="id-card" class="w-4 h-4"></i> Ver Cédula</button>`;
+                }
+                if(emp.fileArl) {
+                    docsHtml += `<button onclick="utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" class="flex-1 bg-emerald-50 text-emerald-700 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors border border-emerald-100 shadow-sm active:scale-95"><i data-lucide="file-check-2" class="w-4 h-4"></i> Ver ARL</button>`;
+                }
+                if(!emp.fileCedula && !emp.fileArl) {
+                    docsHtml = `<div class="w-full text-center text-xs font-medium text-slate-400 py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">No hay documentos adjuntos para este perfil.</div>`;
+                }
+                document.getElementById('viewDocsContainer').innerHTML = docsHtml;
+
+                // Conectar botón de edición dentro del modal
+                document.getElementById('viewModalEditBtn').onclick = () => {
+                    ui.closeViewModal();
+                    appState.editEmployee(emp.id);
+                };
+
+                ui.show('viewEmployeeModal');
+                document.getElementById('viewEmployeeModal').style.display = 'flex';
+                lucide.createIcons();
+            },
+            closeViewModal: () => ui.hide('viewEmployeeModal'),
+
+            // --- ABRIR MODAL DE EDICIÓN / NUEVO ---
             openEmployeeModal: (emp = null) => {
                 document.getElementById('employeeForm').reset();
                 document.getElementById('empId').value = '';
                 document.getElementById('empFileCedulaBase64').value = '';
                 document.getElementById('empFileArlBase64').value = '';
                 document.getElementById('empFileFotoBase64').value = '';
-                document.getElementById('empModalTitle').innerText = emp ? 'Editar Ficha Técnica' : 'Nueva Ficha Técnica';
+                document.getElementById('empModalTitle').innerText = emp ? 'Editar Información' : 'Registrar Nuevo Perfil';
                 
-                // Reseteo visual de avatar
                 const imgPreview = document.getElementById('empAvatarPreview');
                 imgPreview.src = '';
                 imgPreview.classList.add('hidden');
@@ -767,7 +886,6 @@
                 lucide.createIcons();
                 ui.hide('globalNav');
                 
-                // UX: Actualizar nombre de archivo en form publico
                 const pubFile = document.getElementById('pubFileCedula');
                 if(pubFile){
                     pubFile.addEventListener('change', (e) => {
@@ -801,7 +919,6 @@
 
                 ui.show('view-login');
 
-                // DB Listeners
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'companies'), snap => {
                     appData.companies = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     if(appData.currentUser?.role === 'SUPER_ADMIN') appState.renderSuperAdmin();
@@ -827,7 +944,7 @@
                 });
             },
 
-            // --- LÓGICA DEL FORMULARIO PÚBLICO DEL EMPLEADO ---
+            // ... logicas de submit, login, logout, superadmin quedan intactas ...
             submitPublicForm: async (e) => {
                 e.preventDefault();
                 const btn = document.getElementById('pubSubmitBtn');
@@ -878,7 +995,6 @@
                 }
             },
 
-            // --- LÓGICA DE LOGIN ---
             login: (e) => {
                 e.preventDefault();
                 const email = document.getElementById('loginEmail').value.trim().toLowerCase();
@@ -918,7 +1034,6 @@
                 ui.toast('Sesión cerrada exitosamente', 'info');
             },
 
-            // --- SUPER ADMIN LOGIC ---
             createCompany: async (e) => {
                 e.preventDefault();
                 const name = document.getElementById('newCompName').value.trim();
@@ -973,7 +1088,6 @@
                 lucide.createIcons();
             },
 
-            // --- COMPANY ADMIN LOGIC ---
             generateRegistrationLink: () => {
                 if(!appData.currentUser || !appData.currentUser.companyId) return;
                 const link = `${window.location.origin}${window.location.pathname}?form=${appData.currentUser.companyId}`;
@@ -989,6 +1103,12 @@
                 }
             },
             
+            // --- NUEVO: FUNCIÓN PARA ABRIR EL MODO LECTURA ---
+            viewEmployee: (id) => {
+                const emp = appData.employees.find(e => e.id === id);
+                if(emp) ui.openViewModal(emp);
+            },
+
             editEmployee: (id) => {
                 const emp = appData.employees.find(e => e.id === id);
                 if(emp) ui.openEmployeeModal(emp);
@@ -1036,7 +1156,7 @@
 
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), data);
                     ui.closeEmployeeModal();
-                    ui.toast('Ficha Técnica actualizada exitosamente');
+                    ui.toast('Cambios guardados exitosamente');
                 } catch(err) {
                     ui.toast(err.toString(), "error");
                 } finally {
@@ -1045,9 +1165,9 @@
             },
 
             deleteEmployee: (id) => {
-                ui.openConfirm("Borrar Ficha Técnica", "¿Seguro que deseas eliminar permanentemente a este empleado de la empresa?", async () => {
+                ui.openConfirm("Borrar Perfil", "¿Seguro que deseas eliminar permanentemente a este empleado de la empresa?", async () => {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id));
-                    ui.toast("Ficha técnica eliminada correctamente");
+                    ui.toast("Perfil eliminado correctamente");
                 });
             },
 
@@ -1073,25 +1193,26 @@
                         const arl = utils.getArlStatus(emp.fechaArl, emp.duracionArl);
                         const avatarSrc = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
                         
+                        // NOTA: Se agrega `onclick="appState.viewEmployee"` al contenedor y `event.stopPropagation()` a los botones internos.
                         return `
-                        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3 fade-in">
+                        <div onclick="appState.viewEmployee('${emp.id}')" class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3 fade-in cursor-pointer hover:shadow-md transition-all group">
                             <div class="flex justify-between items-start gap-3">
                                 <div class="flex gap-3 overflow-hidden items-center">
                                     <img src="${avatarSrc}" class="w-12 h-12 rounded-full object-cover shadow-sm border border-slate-200 flex-shrink-0" alt="Foto">
                                     <div class="overflow-hidden">
-                                        <h3 class="font-black text-slate-800 text-lg leading-tight truncate">${utils.escapeHTML(emp.nombres)} ${utils.escapeHTML(emp.apellidos)}</h3>
+                                        <h3 class="font-black text-slate-800 text-lg leading-tight truncate group-hover:text-indigo-600 transition-colors">${utils.escapeHTML(emp.nombres)} ${utils.escapeHTML(emp.apellidos)}</h3>
                                         <p class="text-xs text-slate-500 font-mono mt-0.5 font-semibold tracking-wide">CC: ${utils.escapeHTML(emp.cedula)}</p>
                                     </div>
                                 </div>
-                                <div class="flex gap-2 flex-shrink-0">
-                                    <button onclick="appState.editEmployee('${emp.id}')" class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 active:scale-90 transition-all"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                                <div class="flex gap-1.5 flex-shrink-0">
+                                    <button onclick="event.stopPropagation(); appState.editEmployee('${emp.id}')" class="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-indigo-50 hover:text-indigo-600 active:scale-90 transition-all"><i data-lucide="edit" class="w-4 h-4"></i></button>
                                 </div>
                             </div>
                             
                             <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs font-medium text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                <a href="tel:${utils.escapeHTML(emp.telefono)}" class="flex items-center gap-1.5 text-indigo-600 truncate"><i data-lucide="phone" class="w-3.5 h-3.5 text-indigo-400"></i> ${utils.escapeHTML(emp.telefono)}</a>
+                                <a href="tel:${utils.escapeHTML(emp.telefono)}" onclick="event.stopPropagation()" class="flex items-center gap-1.5 text-indigo-600 truncate hover:underline"><i data-lucide="phone" class="w-3.5 h-3.5 text-indigo-400"></i> ${utils.escapeHTML(emp.telefono)}</a>
                                 <div class="flex items-center gap-1.5 truncate"><i data-lucide="cake" class="w-3.5 h-3.5 text-slate-400"></i> ${utils.escapeHTML(emp.cumpleanos)}</div>
-                                <a href="mailto:${utils.escapeHTML(emp.correo)}" class="col-span-2 flex items-center gap-1.5 truncate"><i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i> ${utils.escapeHTML(emp.correo)}</a>
+                                <a href="mailto:${utils.escapeHTML(emp.correo)}" onclick="event.stopPropagation()" class="col-span-2 flex items-center gap-1.5 truncate hover:underline"><i data-lucide="mail" class="w-3.5 h-3.5 text-slate-400"></i> ${utils.escapeHTML(emp.correo)}</a>
                             </div>
 
                             <div class="flex justify-between items-center mt-1 pt-3 border-t border-slate-100">
@@ -1102,8 +1223,8 @@
                                     <div class="text-[9px] text-slate-400 mt-1 ml-5">${emp.fechaArl ? emp.fechaArl + ' ('+emp.duracionArl+')' : 'Sin fecha'}</div>
                                 </div>
                                 <div class="flex gap-2">
-                                    ${emp.fileCedula ? `<button onclick="utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" class="p-2.5 bg-slate-800 text-white shadow-md rounded-xl active:scale-90 transition-all"><i data-lucide="id-card" class="w-4 h-4"></i></button>` : `<div class="p-2.5 bg-slate-100 text-slate-300 rounded-xl"><i data-lucide="id-card" class="w-4 h-4"></i></div>`}
-                                    ${emp.fileArl ? `<button onclick="utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" class="p-2.5 bg-emerald-600 text-white shadow-md rounded-xl active:scale-90 transition-all"><i data-lucide="file-check-2" class="w-4 h-4"></i></button>` : `<div class="p-2.5 bg-slate-100 text-slate-300 rounded-xl"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>`}
+                                    ${emp.fileCedula ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" class="p-2.5 bg-slate-800 text-white shadow-md rounded-xl active:scale-90 transition-all"><i data-lucide="id-card" class="w-4 h-4"></i></button>` : `<div class="p-2.5 bg-slate-100 text-slate-300 rounded-xl"><i data-lucide="id-card" class="w-4 h-4"></i></div>`}
+                                    ${emp.fileArl ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" class="p-2.5 bg-emerald-600 text-white shadow-md rounded-xl active:scale-90 transition-all"><i data-lucide="file-check-2" class="w-4 h-4"></i></button>` : `<div class="p-2.5 bg-slate-100 text-slate-300 rounded-xl"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>`}
                                 </div>
                             </div>
                         </div>
@@ -1115,19 +1236,19 @@
                         const avatarSrc = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
 
                         return `
-                        <tr class="hover:bg-slate-50 transition-colors group">
+                        <tr onclick="appState.viewEmployee('${emp.id}')" class="hover:bg-indigo-50/50 transition-colors group cursor-pointer border-b border-slate-100 last:border-0">
                             <td class="p-4">
                                 <div class="flex items-center gap-3">
                                     <img src="${avatarSrc}" class="w-10 h-10 rounded-full object-cover shadow-sm border border-slate-200">
                                     <div>
-                                        <div class="font-bold text-slate-800">${utils.escapeHTML(emp.nombres)} ${utils.escapeHTML(emp.apellidos)}</div>
+                                        <div class="font-bold text-slate-800 group-hover:text-indigo-700 transition-colors">${utils.escapeHTML(emp.nombres)} ${utils.escapeHTML(emp.apellidos)}</div>
                                         <div class="text-xs text-slate-500 font-mono mt-1">CC: ${utils.escapeHTML(emp.cedula)}</div>
                                     </div>
                                 </div>
                             </td>
                             <td class="p-4">
-                                <div class="text-sm text-slate-600 mb-1 flex items-center"><i data-lucide="phone" class="w-3 h-3 mr-2 text-slate-400"></i> ${utils.escapeHTML(emp.telefono)}</div>
-                                <div class="text-xs text-slate-500 flex items-center"><i data-lucide="mail" class="w-3 h-3 mr-2 text-slate-400"></i> ${utils.escapeHTML(emp.correo)}</div>
+                                <div class="text-sm text-slate-600 mb-1 flex items-center"><i data-lucide="phone" class="w-3 h-3 mr-2 text-slate-400"></i> <a href="tel:${utils.escapeHTML(emp.telefono)}" onclick="event.stopPropagation()" class="hover:text-indigo-600 hover:underline">${utils.escapeHTML(emp.telefono)}</a></div>
+                                <div class="text-xs text-slate-500 flex items-center"><i data-lucide="mail" class="w-3 h-3 mr-2 text-slate-400"></i> <a href="mailto:${utils.escapeHTML(emp.correo)}" onclick="event.stopPropagation()" class="hover:text-indigo-600 hover:underline">${utils.escapeHTML(emp.correo)}</a></div>
                             </td>
                             <td class="p-4">
                                 <div class="flex flex-col gap-1.5">
@@ -1144,14 +1265,14 @@
                             </td>
                             <td class="p-4 text-center">
                                 <div class="flex justify-center gap-2">
-                                    ${emp.fileCedula ? `<button onclick="utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" title="Ver Cédula" class="p-2 bg-slate-800 text-white hover:bg-slate-700 rounded-lg shadow-sm transition-all"><i data-lucide="id-card" class="w-4 h-4"></i></button>` : `<div class="p-2 bg-slate-50 text-slate-300 rounded-lg border border-slate-100"><i data-lucide="id-card" class="w-4 h-4"></i></div>`}
-                                    ${emp.fileArl ? `<button onclick="utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" title="Ver ARL" class="p-2 bg-emerald-600 text-white hover:bg-emerald-500 rounded-lg shadow-sm transition-all"><i data-lucide="file-check-2" class="w-4 h-4"></i></button>` : `<div class="p-2 bg-slate-50 text-slate-300 rounded-lg border border-slate-100"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>`}
+                                    ${emp.fileCedula ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" title="Ver Cédula" class="p-2 bg-slate-800 text-white hover:bg-slate-700 rounded-lg shadow-sm transition-all"><i data-lucide="id-card" class="w-4 h-4"></i></button>` : `<div class="p-2 bg-slate-50 text-slate-300 rounded-lg border border-slate-100"><i data-lucide="id-card" class="w-4 h-4"></i></div>`}
+                                    ${emp.fileArl ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" title="Ver ARL" class="p-2 bg-emerald-600 text-white hover:bg-emerald-500 rounded-lg shadow-sm transition-all"><i data-lucide="file-check-2" class="w-4 h-4"></i></button>` : `<div class="p-2 bg-slate-50 text-slate-300 rounded-lg border border-slate-100"><i data-lucide="file-check-2" class="w-4 h-4"></i></div>`}
                                 </div>
                             </td>
                             <td class="p-4">
                                 <div class="flex justify-end gap-2 text-slate-500">
-                                    <button onclick="appState.editEmployee('${emp.id}')" class="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"><i data-lucide="edit" class="w-4 h-4"></i></button>
-                                    <button onclick="appState.deleteEmployee('${emp.id}')" class="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                    <button onclick="event.stopPropagation(); appState.editEmployee('${emp.id}')" title="Editar Ficha" class="p-2 text-slate-400 bg-slate-50 hover:bg-indigo-100 hover:text-indigo-600 rounded-lg transition-colors"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                                    <button onclick="event.stopPropagation(); appState.deleteEmployee('${emp.id}')" title="Eliminar Ficha" class="p-2 text-slate-400 bg-slate-50 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                                 </div>
                             </td>
                         </tr>
