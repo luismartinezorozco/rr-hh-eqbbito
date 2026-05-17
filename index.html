@@ -930,6 +930,12 @@
 
                 // MANEJADOR CENTRAL: Reconecta el tiempo real de manera segura según la sesión
                 onAuthStateChanged(auth, (user) => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const isPublicForm = urlParams.get('token');
+                    
+                    // Si estamos en la vista del formulario público, NO cargamos la base de datos completa.
+                    if (isPublicForm) return; 
+
                     if (user) {
                         appState.setupRealtimeListeners();
                     } else {
@@ -956,17 +962,26 @@
                 // Si entran por URL pública (SISTEMA DE TOKENS UNICOS)
                 if(publicToken) {
                     ui.hide('view-login');
+                    ui.show('view-employee-form'); // ¡AQUÍ ESTABA EL ERROR! Siempre debe mostrarse el contenedor base primero.
+
                     try {
                         const tokenDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registration_links', publicToken));
                         if (tokenDoc.exists() && tokenDoc.data().active === true) {
-                            ui.show('view-employee-form');
+                            // Mostrar Formulario y Ocultar Error
+                            document.getElementById('publicFormContainer').classList.remove('hidden-view');
+                            document.getElementById('view-token-error').classList.add('hidden-view');
+                            
                             document.getElementById('pubCompanyId').value = tokenDoc.data().companyId;
                             document.getElementById('pubTokenId').value = publicToken;
                         } else {
-                            ui.show('view-token-error');
+                            // Ocultar Formulario y Mostrar Error (Link Usado o Inválido)
+                            document.getElementById('publicFormContainer').classList.add('hidden-view');
+                            document.getElementById('view-token-error').classList.remove('hidden-view');
                         }
                     } catch(e) {
-                        ui.show('view-token-error');
+                        console.error("Error validando el token público:", e);
+                        document.getElementById('publicFormContainer').classList.add('hidden-view');
+                        document.getElementById('view-token-error').classList.remove('hidden-view');
                     }
                     return; 
                 }
