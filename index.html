@@ -675,7 +675,7 @@
     <!-- App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // =========================================================
@@ -908,18 +908,20 @@
                 document.getElementById('employeeModal').style.display = 'flex';
             },
             closeEmployeeModal: () => ui.hide('employeeModal')
-        };
+    };
 
-        const fileToBase64 = (file) => new Promise((resolve, reject) => {
-            if (!file) return resolve(null);
-            if (file.size > 500000) return reject('El PDF supera los 500KB permitidos.');
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
+    const fileToBase64 = (file) => new Promise((resolve, reject) => {
+        if (!file) return resolve(null);
+        if (file.size > 500000) return reject('El PDF supera los 500KB permitidos.');
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
 
-        window.appState = {
+    window.appState = {
+            unsubscribers: [],
+
             init: async () => {
                 lucide.createIcons();
                 ui.hide('globalNav');
@@ -934,6 +936,16 @@
                         }
                     });
                 }
+
+                // MANEJADOR CENTRAL: Reconecta el tiempo real de manera segura según la sesión
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        appState.setupRealtimeListeners();
+                    } else {
+                        appState.clearListeners();
+                        appData.currentUser = null;
+                    }
+                });
 
                 // SIEMPRE AUTENTICAR PRIMERO (Requisito de Firebase para consultar datos)
                 try {
@@ -969,23 +981,49 @@
                 }
 
                 ui.show('view-login');
+            },
 
-                // AHORA SÍ escuchamos la BD, con manejadores de error incluidos
-                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'companies'), snap => {
+            clearListeners: () => {
+                appState.unsubscribers.forEach(unsub => unsub());
+                appState.unsubscribers = [];
+            },
+
+            setupRealtimeListeners: () => {
+                appState.clearListeners(); // Prevenir duplicados
+
+                const unsubComp = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'companies'), snap => {
                     appData.companies = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    if(appData.currentUser?.role === 'SUPER_ADMIN') appState.renderSuperAdmin();
-                    if(appData.currentUser?.role === 'COMPANY_ADMIN') appState.routeUserAfterLogin(); 
+                    appState.refreshUI();
                 }, error => console.error("Error leyendo companies:", error));
 
-                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), async snap => {
+                const unsubUsers = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), snap => {
                     appData.users = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    if(appData.currentUser?.role === 'SUPER_ADMIN') appState.renderSuperAdmin();
+                    
+                    // Mantener el usuario actual sincronizado (por si el SuperAdmin le edita la empresa en vivo)
+                    if (appData.currentUser && appData.currentUser.email) {
+                        const freshUser = appData.users.find(u => u.email === appData.currentUser.email);
+                        if (freshUser) appData.currentUser = freshUser;
+                    }
+                    appState.refreshUI();
                 }, error => console.error("Error leyendo users:", error));
 
-                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'employees'), snap => {
+                const unsubEmp = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'employees'), snap => {
                     appData.employees = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    if(appData.currentUser?.role === 'COMPANY_ADMIN') appState.renderEmployees();
+                    appState.refreshUI();
                 }, error => console.error("Error leyendo employees:", error));
+
+                appState.unsubscribers.push(unsubComp, unsubUsers, unsubEmp);
+            },
+
+            refreshUI: () => {
+                if (!appData.currentUser) return;
+                
+                if (appData.currentUser.role === 'SUPER_ADMIN') {
+                    appState.renderSuperAdmin();
+                } else if (appData.currentUser.role === 'COMPANY_ADMIN') {
+                    appState.routeUserAfterLogin(); // Refresca barra de navegación (logos y nombres)
+                    appState.renderEmployees(); // Actualiza el directorio de personal
+                }
             },
 
             // --- LOGICA GOOGLE AUTH ---
