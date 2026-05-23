@@ -667,7 +667,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc, updateDoc, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // =========================================================
         // ⚠️ ATENCIÓN: CONFIGURACIÓN DE TU BASE DE DATOS FIREBASE
@@ -1039,24 +1039,37 @@
                     const result = await signInWithPopup(auth, provider);
                     const email = result.user.email.toLowerCase();
 
-                    if (appData.users.length === 0) {
+                    // FIX DE SEGURIDAD: Consultamos directamente a la base de datos 
+                    // en vez de usar la variable local para evitar que conexiones lentas
+                    // generen Super Administradores por error.
+                    
+                    const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', email);
+                    const userSnap = await getDoc(userDocRef);
+
+                    // 1. Verificamos si el usuario ya existe explícitamente en la BD
+                    if (userSnap.exists()) {
+                        appData.currentUser = { id: userSnap.id, ...userSnap.data() };
+                        appState.routeUserAfterLogin();
+                        return;
+                    }
+
+                    // 2. Si el usuario no existe, comprobamos si la BD está REALMENTE vacía en el servidor
+                    const usersQuery = query(collection(db, 'artifacts', appId, 'public', 'data', 'users'), limit(1));
+                    const usersSnapshot = await getDocs(usersQuery);
+
+                    if (usersSnapshot.empty) {
+                        // Es el primer usuario real de todo el sistema
                         const superAdminData = { email: email, role: 'SUPER_ADMIN' };
-                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', email), superAdminData);
+                        await setDoc(userDocRef, superAdminData);
                         appData.currentUser = superAdminData;
                         ui.toast('Configuración inicial: Registrado como Super Administrador');
                         appState.routeUserAfterLogin();
                         return;
                     }
 
-                    const userDoc = appData.users.find(u => u.email === email);
-                    
-                    if (!userDoc) {
-                        await signOut(auth);
-                        return ui.toast('Acceso denegado. Este correo no está autorizado.', 'error');
-                    }
-
-                    appData.currentUser = userDoc;
-                    appState.routeUserAfterLogin();
+                    // 3. Si la base de datos NO está vacía, y el usuario no existe: Bloqueamos.
+                    await signOut(auth);
+                    return ui.toast('Acceso denegado. Este correo no está autorizado.', 'error');
                     
                 } catch (error) {
                     console.error("Error Auth Google:", error);
