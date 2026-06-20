@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,6 +7,22 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // Colores base adaptados a tu imagen (Oscuros profundos)
+                        base: '#09090b', // zinc-950
+                        surface: '#18181b', // zinc-900
+                        primary: '#f97316', // orange-500
+                        primaryGlow: 'rgba(249, 115, 22, 0.15)',
+                    }
+                }
+            }
+        }
+    </script>
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- SheetJS for Excel Reading/Writing -->
@@ -18,11 +34,13 @@
         /* Base sólida y prevención de zoom */
         html, body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #f8fafc; 
+            background-color: #09090b; /* zinc-950 */
+            color: #e4e4e7; /* zinc-200 */
             -webkit-tap-highlight-color: transparent;
             overflow-x: hidden; 
             width: 100%;
             max-width: 100vw;
+            color-scheme: dark;
         }
 
         .hidden-view { display: none !important; }
@@ -39,17 +57,18 @@
         @keyframes slideInUp { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideOutDown { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(100%); } }
         
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        /* Custom Scrollbar adaptado a Dark Mode */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #f97316; }
 
         /* FIX CRÍTICO: Prevenir desbordamiento y zoom en móviles */
         input, select, textarea { 
             font-size: 16px !important; 
             max-width: 100%; 
             min-width: 0; 
+            color-scheme: dark;
         }
 
         form.grid > div { 
@@ -64,37 +83,41 @@
             min-width: 0;
             width: 100%;
             display: block;
-            background-color: #f8fafc; 
+            background-color: #09090b; 
+            color: white;
         }
-        input[type="date"]:focus { background-color: #ffffff; }
+        input[type="date"]:focus { background-color: #18181b; }
 
-        /* Estilos para el Avatar/Foto de Perfil */
-        .avatar-upload-wrapper { position: relative; width: 100px; height: 100px; margin: 0 auto; border-radius: 50%; border: 3px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; background-color: #f8fafc; overflow: hidden; cursor: pointer; transition: all 0.2s; }
-        .avatar-upload-wrapper:hover { border-color: #818cf8; background-color: #e0e7ff; }
-        .avatar-upload-wrapper img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; }
+        /* Estilos para el Avatar/Foto de Perfil - Dark Mode */
+        .avatar-upload-wrapper { position: relative; width: 100px; height: 100px; margin: 0 auto; border-radius: 50%; border: 3px dashed #3f3f46; display: flex; align-items: center; justify-content: center; background-color: #09090b; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+        .avatar-upload-wrapper:hover { border-color: #f97316; background-color: rgba(249, 115, 22, 0.05); box-shadow: 0 0 15px rgba(249, 115, 22, 0.2); }
+        .avatar-upload-wrapper img { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 10; background-color: #18181b; }
         .avatar-upload-wrapper input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 20; }
+        
+        /* Efecto Glow en botones principales */
+        .btn-glow { box-shadow: 0 0 20px rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.3); }
+        .btn-glow:hover { box-shadow: 0 0 25px rgba(249, 115, 22, 0.3); border-color: rgba(249, 115, 22, 0.6); }
     </style>
 </head>
-<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+<body class="text-zinc-200 antialiased min-h-screen flex flex-col selection:bg-orange-500/30 selection:text-orange-200">
 
-    <!-- Navbar Global -->
-    <nav id="globalNav" class="bg-white border-b border-slate-200 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center sticky top-0 z-30 shadow-sm hidden-view w-full">
+    <nav id="globalNav" class="bg-surface border-b border-zinc-800 px-4 md:px-6 py-3 md:py-4 flex justify-between items-center sticky top-0 z-30 shadow-2xl hidden-view w-full">
         <div class="flex items-center space-x-2 md:space-x-3">
-            <div class="w-8 h-8 md:w-10 md:h-10 bg-indigo-600 rounded-lg md:rounded-xl flex items-center justify-center text-white shadow-md relative overflow-hidden cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-all" id="navLogoContainer" onclick="if(appData.currentUser?.role === 'COMPANY_ADMIN') appState.editCompany(appData.currentUser.companyId)" title="Configurar Empresa">
+            <div class="w-8 h-8 md:w-10 md:h-10 bg-zinc-950 rounded-lg md:rounded-xl flex items-center justify-center text-orange-500 shadow-lg ring-1 ring-zinc-800 relative overflow-hidden cursor-pointer hover:ring-orange-500/50 transition-all btn-glow" id="navLogoContainer" onclick="if(appData.currentUser?.role === 'COMPANY_ADMIN') appState.editCompany(appData.currentUser.companyId)" title="Configurar Empresa">
                 <i data-lucide="shield-check" class="w-5 h-5 md:w-6 md:h-6" id="navDefaultIcon"></i>
-                <img id="navCompanyLogo" src="" class="hidden w-full h-full object-cover absolute inset-0 bg-white">
+                <img id="navCompanyLogo" src="" class="hidden w-full h-full object-cover absolute inset-0 bg-surface">
             </div>
             <div>
-                <h1 class="text-lg md:text-xl font-black tracking-tight leading-none">ProHR <span class="text-indigo-600">Secure</span></h1>
-                <p id="navSubtitle" class="text-[9px] md:text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest truncate max-w-[120px] md:max-w-xs">Portal</p>
+                <h1 class="text-lg md:text-xl font-black tracking-tight leading-none text-zinc-100">ProHR <span class="text-orange-500">Secure</span></h1>
+                <p id="navSubtitle" class="text-[9px] md:text-[10px] font-bold text-orange-500/80 mt-0.5 uppercase tracking-widest truncate max-w-[120px] md:max-w-xs">Ecosistema Empresarial</p>
             </div>
         </div>
         <div class="flex items-center space-x-2 md:space-x-4">
             <div class="hidden md:block text-right mr-2">
-                <p id="navUserEmail" class="text-sm font-bold text-slate-700 leading-none">usuario@email.com</p>
-                <span id="navUserRole" class="inline-block mt-1 px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold uppercase tracking-wide">Rol</span>
+                <p id="navUserEmail" class="text-sm font-bold text-zinc-300 leading-none">usuario@email.com</p>
+                <span id="navUserRole" class="inline-block mt-1 px-2 py-0.5 bg-zinc-800 text-zinc-400 border border-zinc-700 rounded text-[10px] font-bold uppercase tracking-wide">Rol</span>
             </div>
-            <button onclick="appState.logout()" class="p-2 md:p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all" title="Cerrar Sesión">
+            <button onclick="appState.logout()" class="p-2 md:p-2.5 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all" title="Cerrar Sesión">
                 <i data-lucide="log-out" class="w-5 h-5 md:w-5 md:h-5"></i>
             </button>
         </div>
@@ -103,19 +126,18 @@
     <!-- Contenedor de Notificaciones -->
     <div id="toastContainer" class="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- Modal de Confirmación UI -->
-    <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden-view">
-        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm md:max-w-md overflow-hidden fade-in">
+    <div id="confirmModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden-view">
+        <div class="bg-surface rounded-3xl shadow-2xl w-full max-w-sm md:max-w-md overflow-hidden fade-in border border-zinc-800">
             <div class="p-6 md:p-8">
-                <div class="flex items-center space-x-3 mb-4 text-red-600">
-                    <div class="p-3 bg-red-100 rounded-full"><i data-lucide="alert-triangle" class="w-7 h-7"></i></div>
-                    <h2 id="confirmTitle" class="text-xl font-black text-slate-800">Atención</h2>
+                <div class="flex items-center space-x-3 mb-4 text-red-500">
+                    <div class="p-3 bg-red-500/10 rounded-full border border-red-500/20"><i data-lucide="alert-triangle" class="w-7 h-7"></i></div>
+                    <h2 id="confirmTitle" class="text-xl font-black text-zinc-100">Atención</h2>
                 </div>
-                <p id="confirmMessage" class="text-slate-600 font-medium leading-relaxed"></p>
+                <p id="confirmMessage" class="text-zinc-400 font-medium leading-relaxed"></p>
             </div>
-            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                <button onclick="ui.closeConfirm()" class="px-5 py-3 md:py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition-colors w-full md:w-auto">Cancelar</button>
-                <button id="confirmBtn" class="px-5 py-3 md:py-2.5 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm w-full md:w-auto">Confirmar</button>
+            <div class="px-6 py-4 bg-zinc-950 border-t border-zinc-800 flex justify-end gap-3">
+                <button onclick="ui.closeConfirm()" class="px-5 py-3 md:py-2.5 rounded-xl font-bold text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors w-full md:w-auto">Cancelar</button>
+                <button id="confirmBtn" class="px-5 py-3 md:py-2.5 rounded-xl font-bold text-white bg-red-600 hover:bg-red-500 border border-red-500/50 transition-colors shadow-lg shadow-red-900/20 w-full md:w-auto">Confirmar</button>
             </div>
         </div>
     </div>
@@ -123,36 +145,35 @@
     <!-- MAIN APP CONTAINER -->
     <main class="flex-1 w-full max-w-7xl mx-auto flex flex-col relative pb-10">
 
-        <!-- VIEW: Login Seguro con Google -->
         <div id="view-login" class="flex-1 flex items-center justify-center p-4 min-h-[80vh] fade-in hidden-view w-full">
-            <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-2xl max-w-md w-full border border-slate-100 relative overflow-hidden text-center">
-                <div class="absolute top-0 left-0 w-full h-2 bg-indigo-600"></div>
-                <div class="flex flex-col items-center mb-6 mt-2">
-                    <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-indigo-600 mb-4 shadow-inner border border-slate-200">
-                        <i data-lucide="shield-check" class="w-8 h-8"></i>
+            <div class="bg-surface p-6 md:p-8 rounded-[2rem] shadow-2xl max-w-md w-full border border-zinc-800 relative overflow-hidden text-center shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-600 via-orange-400 to-orange-600"></div>
+                <div class="flex flex-col items-center mb-8 mt-4">
+                    <div class="w-20 h-20 bg-zinc-950 rounded-2xl flex items-center justify-center text-orange-500 mb-6 border border-zinc-800 shadow-[0_0_30px_rgba(249,115,22,0.15)] relative">
+                        <i data-lucide="shield-check" class="w-10 h-10 relative z-10"></i>
+                        <div class="absolute inset-0 bg-orange-500/5 blur-xl rounded-2xl"></div>
                     </div>
-                    <h2 class="text-2xl font-black text-slate-800">Acceso Empresarial</h2>
-                    <p class="text-sm text-slate-500 font-medium mt-1">Plataforma Segura ProHR</p>
+                    <h2 class="text-3xl font-black text-zinc-100 tracking-tight">Acceso Empresarial</h2>
+                    <p class="text-sm text-orange-500/80 font-bold mt-2 uppercase tracking-widest">Ecosistema Seguro</p>
                 </div>
 
                 <div class="w-full">
-                    <button type="button" onclick="appState.loginWithGoogle()" class="w-full bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-4 md:py-3.5 px-4 rounded-xl shadow-sm transition-all flex justify-center items-center gap-3 active:scale-[0.98]">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6" alt="Google Logo">
+                    <button type="button" onclick="appState.loginWithGoogle()" class="w-full bg-zinc-900 border border-zinc-700 hover:bg-zinc-800 hover:border-orange-500/50 text-zinc-200 font-bold py-4 md:py-3.5 px-4 rounded-xl shadow-lg transition-all flex justify-center items-center gap-3 active:scale-[0.98] group">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-6 h-6 opacity-90 group-hover:opacity-100 transition-opacity" alt="Google Logo">
                         Ingresar con Google
                     </button>
-                    <p class="text-[10px] text-slate-400 mt-4 font-medium">Debes usar el correo institucional autorizado por tu empresa.</p>
+                    <p class="text-[10px] text-zinc-500 mt-5 font-medium">Debes usar el correo institucional autorizado por tu empresa.</p>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW: Formulario Público del Empleado -->
-        <div id="view-employee-form" class="hidden-view flex flex-col items-center p-3 sm:p-4 min-h-screen bg-slate-50 fade-in pb-20 w-full">
+        <div id="view-employee-form" class="hidden-view flex flex-col items-center p-3 sm:p-4 min-h-screen bg-base fade-in pb-20 w-full">
             
-            <div id="publicFormContainer" class="bg-white p-5 md:p-8 rounded-3xl shadow-xl max-w-3xl w-full border border-slate-200 relative overflow-hidden mt-4 md:mt-10">
-                <div class="absolute top-0 left-0 w-full h-2 md:h-3 bg-indigo-500"></div>
+            <div id="publicFormContainer" class="bg-surface p-5 md:p-8 rounded-3xl shadow-2xl max-w-3xl w-full border border-zinc-800 relative overflow-hidden mt-4 md:mt-10">
+                <div class="absolute top-0 left-0 w-full h-1 md:h-2 bg-gradient-to-r from-orange-600 via-orange-400 to-orange-600"></div>
                 <div class="text-center mb-6 md:mb-8 mt-2 w-full">
-                    <h2 class="text-xl md:text-2xl font-black text-slate-800 px-2 mt-4">Ficha Técnica de Ingreso</h2>
-                    <p class="text-xs md:text-sm text-slate-500 mt-2 px-2">Diligencia tus datos. La información será encriptada y enviada a Recursos Humanos. <br><strong class="text-red-500">No podrás modificar los datos después de enviar.</strong></p>
+                    <h2 class="text-xl md:text-2xl font-black text-zinc-100 px-2 mt-4">Ficha Técnica de Ingreso</h2>
+                    <p class="text-xs md:text-sm text-zinc-400 mt-2 px-2">Diligencia tus datos. La información será encriptada y enviada a Recursos Humanos. <br><strong class="text-orange-500">No podrás modificar los datos después de enviar.</strong></p>
                 </div>
 
                 <form id="publicEmployeeForm" onsubmit="appState.submitPublicForm(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6 w-full max-w-full">
@@ -161,47 +182,47 @@
                     
                     <!-- FOTO DE PERFIL -->
                     <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center mb-4">
-                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wide mb-2 text-center w-full">Fotografía del Empleado *</label>
+                        <label class="block text-[11px] font-bold text-zinc-400 uppercase tracking-wide mb-2 text-center w-full">Fotografía del Empleado *</label>
                         <div class="avatar-upload-wrapper shadow-inner">
-                            <i data-lucide="camera" class="w-8 h-8 text-slate-400"></i>
+                            <i data-lucide="camera" class="w-8 h-8 text-zinc-500"></i>
                             <input type="file" id="pubFileFoto" accept="image/*" required onchange="utils.previewAvatar(event, 'pubAvatarPreview')">
                             <img id="pubAvatarPreview" src="" alt="Avatar" class="hidden">
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-2">Toca para tomar/subir una foto de rostro claro</p>
+                        <p class="text-[10px] text-zinc-500 mt-2">Toca para tomar/subir una foto de rostro claro</p>
                     </div>
 
                     <!-- Info Personal -->
-                    <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1">
-                        <h3 class="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Info Personal</h3>
+                    <div class="col-span-1 md:col-span-2 border-b border-zinc-800 pb-2 mb-1">
+                        <h3 class="text-xs font-black text-orange-500 uppercase tracking-widest flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Info Personal</h3>
                     </div>
                     <div class="w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Nombres *</label>
-                        <input type="text" id="pubNombres" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Ej: Juan Carlos">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Nombres *</label>
+                        <input type="text" id="pubNombres" required class="w-full px-4 py-3.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none bg-base focus:bg-surface text-white transition-colors" placeholder="Ej: Juan Carlos">
                     </div>
                     <div class="w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Apellidos *</label>
-                        <input type="text" id="pubApellidos" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Ej: Pérez Gómez">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Apellidos *</label>
+                        <input type="text" id="pubApellidos" required class="w-full px-4 py-3.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none bg-base focus:bg-surface text-white transition-colors" placeholder="Ej: Pérez Gómez">
                     </div>
                     <div class="w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Cédula de Ciudadanía *</label>
-                        <input type="number" id="pubCedula" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Sin puntos ni comas">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Cédula de Ciudadanía *</label>
+                        <input type="number" id="pubCedula" required class="w-full px-4 py-3.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none bg-base focus:bg-surface text-white transition-colors" placeholder="Sin puntos ni comas">
                     </div>
                     <div class="w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Fecha de Nacimiento *</label>
-                        <input type="date" id="pubCumple" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Fecha de Nacimiento *</label>
+                        <input type="date" id="pubCumple" required class="w-full px-4 py-3.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none bg-base focus:bg-surface text-white transition-colors">
                     </div>
 
                     <!-- Salud -->
-                    <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2">
-                        <h3 class="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="heart-pulse" class="w-4 h-4"></i> Salud y Seguridad</h3>
+                    <div class="col-span-1 md:col-span-2 border-b border-zinc-800 pb-2 mb-1 mt-2">
+                        <h3 class="text-xs font-black text-orange-500 uppercase tracking-widest flex items-center gap-2"><i data-lucide="heart-pulse" class="w-4 h-4"></i> Salud y Seguridad</h3>
                     </div>
                     <div class="w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">EPS *</label>
-                        <input type="text" id="pubEps" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Nombre de tu EPS">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">EPS *</label>
+                        <input type="text" id="pubEps" required class="w-full px-4 py-3.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none bg-base focus:bg-surface text-white transition-colors" placeholder="Nombre de tu EPS">
                     </div>
                     <div class="w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Tipo de Sangre *</label>
-                        <select id="pubSangre" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Tipo de Sangre *</label>
+                        <select id="pubSangre" required class="w-full px-4 py-3.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none bg-base focus:bg-surface text-white transition-colors">
                             <option value="">Seleccione...</option>
                             <option value="O+">O Positivo (O+)</option><option value="O-">O Negativo (O-)</option>
                             <option value="A+">A Positivo (A+)</option><option value="A-">A Negativo (A-)</option>
@@ -211,46 +232,46 @@
                     </div>
 
                     <!-- Contacto -->
-                    <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2">
-                        <h3 class="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i> Contacto</h3>
+                    <div class="col-span-1 md:col-span-2 border-b border-zinc-800 pb-2 mb-1 mt-2">
+                        <h3 class="text-xs font-black text-orange-500 uppercase tracking-widest flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i> Contacto</h3>
                     </div>
                     <div class="w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Teléfono / Celular *</label>
-                        <input type="tel" id="pubTel" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Ej: 3001234567">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Teléfono / Celular *</label>
+                        <input type="tel" id="pubTel" required class="w-full px-4 py-3.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none bg-base focus:bg-surface text-white transition-colors" placeholder="Ej: 3001234567">
                     </div>
                     <div class="w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Correo Electrónico *</label>
-                        <input type="email" id="pubCorreo" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="correo@ejemplo.com">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Correo Electrónico *</label>
+                        <input type="email" id="pubCorreo" required class="w-full px-4 py-3.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none bg-base focus:bg-surface text-white transition-colors" placeholder="correo@ejemplo.com">
                     </div>
                     <div class="col-span-1 md:col-span-2 w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Dirección de Vivienda *</label>
-                        <input type="text" id="pubDir" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Ej: Calle 123 # 45-67, Ciudad">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Dirección de Vivienda *</label>
+                        <input type="text" id="pubDir" required class="w-full px-4 py-3.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none bg-base focus:bg-surface text-white transition-colors" placeholder="Ej: Calle 123 # 45-67, Ciudad">
                     </div>
                     <div class="col-span-1 md:col-span-2 w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Contacto de Emergencia *</label>
-                        <input type="text" id="pubEmergencia" required class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none bg-slate-50 focus:bg-white transition-colors" placeholder="Nombre completo y número telefónico">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Contacto de Emergencia *</label>
+                        <input type="text" id="pubEmergencia" required class="w-full px-4 py-3.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none bg-base focus:bg-surface text-white transition-colors" placeholder="Nombre completo y número telefónico">
                     </div>
 
                     <!-- Subida de Documentos (PDF) -->
-                    <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2">
-                        <h3 class="text-xs font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2"><i data-lucide="file-up" class="w-4 h-4"></i> Adjuntar Documentos</h3>
-                        <p class="text-[10px] md:text-xs text-slate-500 mt-1 ml-6 font-medium">Solo archivos en formato PDF. Tamaño máximo por archivo: 500KB.</p>
+                    <div class="col-span-1 md:col-span-2 border-b border-zinc-800 pb-2 mb-1 mt-2">
+                        <h3 class="text-xs font-black text-orange-500 uppercase tracking-widest flex items-center gap-2"><i data-lucide="file-up" class="w-4 h-4"></i> Adjuntar Documentos</h3>
+                        <p class="text-[10px] md:text-xs text-zinc-500 mt-1 ml-6 font-medium">Solo archivos en formato PDF. Tamaño máximo por archivo: 500KB.</p>
                     </div>
                     
                     <div class="col-span-1 md:col-span-2 w-full">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Documento de Identidad (PDF)</label>
-                        <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 bg-slate-50 hover:bg-slate-100 transition-colors text-center relative w-full">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-2 uppercase tracking-wide">Documento de Identidad (PDF)</label>
+                        <div class="border border-dashed border-zinc-700 rounded-xl p-4 bg-base hover:border-orange-500/50 transition-colors text-center relative w-full">
                             <input type="file" id="pubFileCedula" accept="application/pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                             <div class="flex flex-col items-center pointer-events-none">
-                                <i data-lucide="upload-cloud" class="w-8 h-8 text-indigo-400 mb-2"></i>
-                                <span class="text-sm font-bold text-slate-600">Toca aquí para subir tu Cédula</span>
-                                <span class="text-xs text-slate-400 mt-1" id="fileNameLabel">Ningún archivo seleccionado</span>
+                                <i data-lucide="upload-cloud" class="w-8 h-8 text-orange-500/50 mb-2"></i>
+                                <span class="text-sm font-bold text-zinc-300">Toca aquí para subir tu Cédula</span>
+                                <span class="text-xs text-zinc-500 mt-1" id="fileNameLabel">Ningún archivo seleccionado</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-span-1 md:col-span-2 mt-6 w-full">
-                        <button type="submit" id="pubSubmitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black text-lg py-4 px-4 rounded-xl shadow-xl shadow-indigo-200 transition-all flex justify-center items-center gap-2 active:scale-[0.98]">
+                        <button type="submit" id="pubSubmitBtn" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-black text-lg py-4 px-4 rounded-xl btn-glow transition-all flex justify-center items-center gap-2 active:scale-[0.98]">
                             Enviar y Bloquear Datos <i data-lucide="lock" class="w-5 h-5"></i>
                         </button>
                     </div>
@@ -258,60 +279,59 @@
             </div>
 
             <!-- Pantalla de Éxito Público -->
-            <div id="publicSuccess" class="hidden-view bg-white p-8 rounded-[2rem] shadow-xl max-w-md w-full border border-slate-200 text-center relative overflow-hidden mt-10">
-                <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600 mb-6 border-4 border-white shadow-lg">
+            <div id="publicSuccess" class="hidden-view bg-surface p-8 rounded-[2rem] shadow-2xl max-w-md w-full border border-zinc-800 text-center relative overflow-hidden mt-10">
+                <div class="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto text-emerald-500 mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
                     <i data-lucide="check-circle" class="w-10 h-10"></i>
                 </div>
-                <h2 class="text-2xl font-black text-slate-800 mb-2">¡Datos Enviados!</h2>
-                <p class="text-sm text-slate-600 mb-6 font-medium leading-relaxed">Tu información ha sido registrada exitosamente. Por motivos de seguridad, los datos han sido bloqueados y ya no pueden modificarse desde aquí.</p>
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm font-bold text-slate-500">
+                <h2 class="text-2xl font-black text-zinc-100 mb-2">¡Datos Enviados!</h2>
+                <p class="text-sm text-zinc-400 mb-6 font-medium leading-relaxed">Tu información ha sido registrada exitosamente. Por motivos de seguridad, los datos han sido bloqueados y ya no pueden modificarse desde aquí.</p>
+                <div class="p-4 bg-base rounded-xl border border-zinc-800 text-sm font-bold text-zinc-500">
                     Puedes cerrar esta pestaña con seguridad.
                 </div>
             </div>
 
             <!-- Pantalla de Error de Token -->
-            <div id="view-token-error" class="hidden-view bg-white p-8 rounded-[2rem] shadow-xl max-w-md w-full border border-slate-200 text-center relative overflow-hidden mt-10">
-                <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-600 mb-6 border-4 border-white shadow-lg">
+            <div id="view-token-error" class="hidden-view bg-surface p-8 rounded-[2rem] shadow-2xl max-w-md w-full border border-zinc-800 text-center relative overflow-hidden mt-10">
+                <div class="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto text-red-500 mb-6 border border-red-500/20 shadow-[0_0_30px_rgba(239,68,68,0.15)]">
                     <i data-lucide="shield-off" class="w-10 h-10"></i>
                 </div>
-                <h2 class="text-2xl font-black text-slate-800 mb-2">Enlace Invalido o Expirado</h2>
-                <p class="text-sm text-slate-600 mb-6 font-medium leading-relaxed">Este enlace de registro es de un solo uso y ya ha sido utilizado o ha expirado por motivos de seguridad. Por favor, solicita uno nuevo al administrador de tu empresa.</p>
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm font-bold text-slate-400">
+                <h2 class="text-2xl font-black text-zinc-100 mb-2">Enlace Inválido o Expirado</h2>
+                <p class="text-sm text-zinc-400 mb-6 font-medium leading-relaxed">Este enlace de registro es de un solo uso y ya ha sido utilizado o ha expirado por motivos de seguridad. Por favor, solicita uno nuevo al administrador de tu empresa.</p>
+                <div class="p-4 bg-base rounded-xl border border-zinc-800 text-sm font-bold text-zinc-500">
                     ID de Acceso Denegado
                 </div>
             </div>
         </div>
 
-        <!-- VIEW: Panel Super Admin -->
         <div id="view-superadmin" class="hidden-view p-4 md:p-8 w-full fade-in space-y-6">
-            <div class="bg-indigo-50 border-2 border-indigo-100 p-5 rounded-3xl flex items-start space-x-4 text-indigo-900 shadow-sm w-full">
-                <i data-lucide="crown" class="w-8 h-8 md:w-10 md:h-10 flex-shrink-0 text-indigo-600"></i>
+            <div class="bg-orange-500/10 border border-orange-500/20 p-5 rounded-3xl flex items-start space-x-4 text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.05)] w-full">
+                <i data-lucide="crown" class="w-8 h-8 md:w-10 md:h-10 flex-shrink-0 text-orange-500"></i>
                 <div class="text-sm">
-                    <strong class="block mb-1 text-base md:text-lg">Panel de Control Maestro</strong>
+                    <strong class="block mb-1 text-base md:text-lg text-orange-500">Panel de Control Maestro</strong>
                     <p class="font-medium text-xs md:text-sm">Desde aquí puedes crear, editar y eliminar empresas (clientes) y asignarles un correo autorizado para ingresar. La autenticación se realiza mediante Google.</p>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
                 <!-- Crear Empresa -->
-                <div class="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-200 w-full flex flex-col max-h-[600px]">
-                    <h2 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-                        <i data-lucide="building-2" class="w-5 h-5 text-indigo-500"></i> 1. Gestión de Empresas
+                <div class="bg-surface p-5 md:p-6 rounded-3xl shadow-xl border border-zinc-800 w-full flex flex-col max-h-[600px]">
+                    <h2 class="text-lg font-black text-zinc-100 mb-4 flex items-center gap-2 border-b border-zinc-800 pb-3">
+                        <i data-lucide="building-2" class="w-5 h-5 text-orange-500"></i> 1. Gestión de Empresas
                     </h2>
                     <form onsubmit="appState.createCompany(event)" class="space-y-4 w-full mb-6">
                         <div class="flex gap-3 mb-2">
                             <div class="avatar-upload-wrapper !w-14 !h-14 flex-shrink-0 shadow-sm" title="Subir Logo (Opcional)" style="width: 56px; height: 56px;">
-                                <i data-lucide="image-plus" class="w-5 h-5 text-slate-400"></i>
+                                <i data-lucide="image-plus" class="w-5 h-5 text-zinc-500"></i>
                                 <input type="file" id="newCompLogo" accept="image/*" onchange="utils.previewAvatar(event, 'newCompLogoPreview')">
                                 <img id="newCompLogoPreview" src="" alt="Logo" class="hidden">
                             </div>
-                            <input type="text" id="newCompName" required placeholder="Nombre de la Empresa (Ej: Coca Cola)" class="w-full px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base font-medium">
+                            <input type="text" id="newCompName" required placeholder="Nombre de la Empresa (Ej: Coca Cola)" class="w-full px-4 py-3 md:py-2.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none text-base font-medium bg-base text-white">
                         </div>
-                        <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 md:py-2.5 rounded-xl transition-colors">Crear Empresa</button>
+                        <button type="submit" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 md:py-2.5 rounded-xl btn-glow transition-colors">Crear Empresa</button>
                     </form>
                     
                     <div class="w-full flex-1 overflow-hidden flex flex-col">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Empresas Registradas</h3>
+                        <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Empresas Registradas</h3>
                         <ul id="companiesList" class="space-y-2 overflow-y-auto pr-1 w-full flex-1 custom-scrollbar">
                             <!-- JS Injects -->
                         </ul>
@@ -319,23 +339,23 @@
                 </div>
 
                 <!-- Crear Usuario Empresa (Correo) -->
-                <div class="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-200 w-full flex flex-col max-h-[600px]">
-                    <h2 class="text-lg font-black text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
+                <div class="bg-surface p-5 md:p-6 rounded-3xl shadow-xl border border-zinc-800 w-full flex flex-col max-h-[600px]">
+                    <h2 class="text-lg font-black text-zinc-100 mb-4 flex items-center gap-2 border-b border-zinc-800 pb-3">
                         <i data-lucide="user-check" class="w-5 h-5 text-emerald-500"></i> 2. Accesos Autorizados
                     </h2>
                     <form onsubmit="appState.createUser(event)" class="space-y-4 w-full mb-6">
-                        <select id="newUserCompany" required class="w-full px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base font-medium bg-slate-50">
+                        <select id="newUserCompany" required class="w-full px-4 py-3 md:py-2.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none text-base font-medium bg-base text-white">
                             <option value="">Seleccione una Empresa...</option>
                             <!-- JS Injects -->
                         </select>
-                        <input type="email" id="newUserEmail" required placeholder="Correo Google Autorizado (@gmail.com)" class="w-full px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base font-medium">
-                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 md:py-2.5 rounded-xl transition-colors flex justify-center items-center gap-2">
+                        <input type="email" id="newUserEmail" required placeholder="Correo Google Autorizado (@gmail.com)" class="w-full px-4 py-3 md:py-2.5 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none text-base font-medium bg-base text-white">
+                        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 border border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)] text-white font-bold py-3 md:py-2.5 rounded-xl transition-colors flex justify-center items-center gap-2">
                             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 bg-white rounded-full" alt="Google"> Guardar Autorización
                         </button>
                     </form>
 
                     <div class="w-full flex-1 overflow-hidden flex flex-col">
-                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Correos Autorizados</h3>
+                        <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Correos Autorizados</h3>
                         <ul id="usersList" class="space-y-2 overflow-y-auto pr-1 w-full flex-1 custom-scrollbar">
                             <!-- JS Injects -->
                         </ul>
@@ -345,28 +365,28 @@
         </div>
 
         <!-- MODAL: EDITAR EMPRESA -->
-        <div id="editCompanyModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden-view">
-            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden fade-in relative">
-                <div class="px-6 py-4 border-b flex justify-between items-center bg-slate-50">
-                    <h2 class="text-xl font-black text-slate-800">Editar Empresa</h2>
-                    <button onclick="ui.hide('editCompanyModal')" class="text-slate-400 hover:text-red-500 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <div id="editCompanyModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden-view">
+            <div class="bg-surface rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden fade-in relative border border-zinc-800">
+                <div class="px-6 py-4 border-b border-zinc-800 flex justify-between items-center bg-surface">
+                    <h2 class="text-xl font-black text-zinc-100">Editar Empresa</h2>
+                    <button onclick="ui.hide('editCompanyModal')" class="text-zinc-500 hover:text-red-400 hover:bg-red-500/10 p-1.5 rounded-lg transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
                 </div>
                 <form onsubmit="appState.saveCompanyEdit(event)" class="p-6">
                     <input type="hidden" id="editCompId">
                     <div class="flex flex-col items-center justify-center mb-6">
                         <div class="avatar-upload-wrapper !w-24 !h-24 shadow-sm" title="Actualizar Logo" style="width: 96px; height: 96px;">
-                            <i data-lucide="image-plus" class="w-8 h-8 text-slate-400"></i>
+                            <i data-lucide="image-plus" class="w-8 h-8 text-zinc-500"></i>
                             <input type="file" id="editCompLogo" accept="image/*" onchange="utils.previewAvatar(event, 'editCompLogoPreview')">
                             <img id="editCompLogoPreview" src="" alt="Logo" class="hidden">
                             <input type="hidden" id="editCompLogoBase64">
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-2 font-medium">Actualizar Logo (Opcional)</p>
+                        <p class="text-[10px] text-zinc-500 mt-2 font-medium">Actualizar Logo (Opcional)</p>
                     </div>
                     <div class="mb-6">
-                        <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Nombre de la Empresa</label>
-                        <input type="text" id="editCompName" required class="w-full px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none font-medium text-slate-700 bg-slate-50 focus:bg-white transition-colors">
+                        <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Nombre de la Empresa</label>
+                        <input type="text" id="editCompName" required class="w-full px-4 py-3 rounded-xl border border-zinc-800 focus:border-orange-500 outline-none font-medium text-white bg-base focus:bg-surface transition-colors">
                     </div>
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl transition-colors shadow-lg shadow-indigo-200">Guardar Cambios</button>
+                    <button type="submit" class="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3.5 rounded-xl btn-glow transition-colors">Guardar Cambios</button>
                 </form>
             </div>
         </div>
@@ -375,47 +395,47 @@
         <div id="view-companyadmin" class="hidden-view p-3 md:p-6 lg:p-8 w-full fade-in space-y-4 md:space-y-6">
             
             <!-- Cabecera de Acciones -->
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 w-full">
-                <div class="w-full lg:w-auto text-center lg:text-left border-b border-slate-100 lg:border-none pb-3 lg:pb-0">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-surface p-4 md:p-6 rounded-2xl md:rounded-3xl shadow-xl border border-zinc-800 w-full">
+                <div class="w-full lg:w-auto text-center lg:text-left border-b border-zinc-800 lg:border-none pb-3 lg:pb-0">
                     <div class="flex items-center justify-center lg:justify-start gap-3">
-                        <h2 class="text-xl md:text-2xl font-black text-slate-800">Directorio de Personal</h2>
-                        <button onclick="appState.editCompany(appData.currentUser.companyId)" class="p-1.5 md:p-2 bg-slate-100 hover:bg-indigo-100 text-slate-500 hover:text-indigo-600 rounded-lg md:rounded-xl transition-colors shadow-sm active:scale-95" title="Actualizar Perfil y Logo de Empresa">
+                        <h2 class="text-xl md:text-2xl font-black text-zinc-100">Directorio de Personal</h2>
+                        <button onclick="appState.editCompany(appData.currentUser.companyId)" class="p-1.5 md:p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-orange-500 rounded-lg md:rounded-xl transition-colors shadow-sm active:scale-95 border border-zinc-700 hover:border-orange-500/50" title="Actualizar Perfil y Logo de Empresa">
                             <i data-lucide="settings" class="w-4 h-4 md:w-5 md:h-5"></i>
                         </button>
                     </div>
-                    <p class="text-xs md:text-sm text-slate-500 font-medium mt-1">Gestión de fichas técnicas y configuración.</p>
+                    <p class="text-xs md:text-sm text-zinc-500 font-medium mt-1">Gestión de fichas técnicas y configuración.</p>
                 </div>
                 
                 <div class="grid grid-cols-2 md:flex md:flex-wrap gap-2 md:gap-3 w-full lg:w-auto">
-                    <button onclick="appState.generateRegistrationLink()" class="col-span-2 md:col-span-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-3 md:py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 border border-indigo-200 active:scale-95">
+                    <button onclick="appState.generateRegistrationLink()" class="col-span-2 md:col-span-1 bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 font-bold py-3 md:py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 border border-orange-500/20 active:scale-95">
                         <i data-lucide="link-2" class="w-5 h-5"></i> <span class="text-sm md:text-base">Enlace Público</span>
                     </button>
                     
-                    <button onclick="ui.openEmployeeModal()" class="col-span-2 md:col-span-1 bg-slate-800 hover:bg-slate-900 text-white font-bold py-3.5 md:py-2.5 px-4 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95">
+                    <button onclick="ui.openEmployeeModal()" class="col-span-2 md:col-span-1 bg-orange-600 hover:bg-orange-500 text-white font-bold py-3.5 md:py-2.5 px-4 rounded-xl btn-glow transition-all flex items-center justify-center gap-2 active:scale-95">
                         <i data-lucide="user-plus" class="w-5 h-5"></i> <span class="text-sm md:text-base">Nuevo Empleado</span>
                     </button>
                 </div>
             </div>
 
             <!-- Buscador y Tablas -->
-            <div class="bg-white rounded-2xl md:rounded-3xl shadow-sm border border-slate-200 overflow-hidden w-full">
-                <div class="p-3 md:p-4 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-center gap-3 w-full">
+            <div class="bg-surface rounded-2xl md:rounded-3xl shadow-xl border border-zinc-800 overflow-hidden w-full">
+                <div class="p-3 md:p-4 border-b border-zinc-800 bg-surface flex flex-col sm:flex-row justify-between items-center gap-3 w-full">
                     <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto flex-1">
                         <div class="relative w-full sm:max-w-xs">
-                            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
-                            <input type="text" id="searchInput" onkeyup="appState.renderEmployees()" placeholder="Buscar por nombre o cédula..." class="w-full pl-10 pr-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm md:text-base bg-white">
+                            <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500"></i>
+                            <input type="text" id="searchInput" onkeyup="appState.renderEmployees()" placeholder="Buscar por nombre o cédula..." class="w-full pl-10 pr-4 py-3 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-sm md:text-base bg-base text-white focus:bg-surface transition-colors">
                         </div>
-                        <select id="empFilterStatus" onchange="appState.renderEmployees()" class="w-full sm:w-auto px-4 py-3 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-sm md:text-base bg-white font-bold text-slate-600 cursor-pointer">
+                        <select id="empFilterStatus" onchange="appState.renderEmployees()" class="w-full sm:w-auto px-4 py-3 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-sm md:text-base bg-base text-zinc-300 font-bold cursor-pointer transition-colors focus:bg-surface">
                             <option value="active">Personal Activo</option>
                             <option value="deleted">Papelera (Inactivos)</option>
                         </select>
                     </div>
-                    <div class="text-xs font-bold text-slate-500 uppercase tracking-wider bg-white px-4 py-2 md:py-1.5 rounded-lg border border-slate-200 shadow-sm w-full sm:w-auto text-center flex-shrink-0" id="empCount">
+                    <div class="text-xs font-bold text-orange-500 uppercase tracking-wider bg-orange-500/10 px-4 py-2 md:py-1.5 rounded-lg border border-orange-500/20 shadow-sm w-full sm:w-auto text-center flex-shrink-0" id="empCount">
                         0 Registros
                     </div>
                 </div>
 
-                <div class="bg-slate-50 md:bg-white p-2 md:p-0 w-full">
+                <div class="bg-base md:bg-surface p-2 md:p-0 w-full">
                     
                     <!-- VISTA MÓVIL -->
                     <div id="employeesMobileList" class="md:hidden flex flex-col gap-3 w-full">
@@ -426,7 +446,7 @@
                     <div class="hidden md:block overflow-x-auto w-full">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-white text-slate-500 text-xs uppercase tracking-wider border-b border-slate-200">
+                                <tr class="bg-zinc-900/50 text-zinc-400 text-xs uppercase tracking-wider border-b border-zinc-800">
                                     <th class="p-4 font-bold whitespace-nowrap">Empleado (Ficha Técnica)</th>
                                     <th class="p-4 font-bold whitespace-nowrap">Contacto</th>
                                     <th class="p-4 font-bold whitespace-nowrap">Estado ARL / Salud</th>
@@ -434,7 +454,7 @@
                                     <th class="p-4 font-bold text-right whitespace-nowrap">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="employeesTableBody" class="divide-y divide-slate-100 bg-white">
+                            <tbody id="employeesTableBody" class="divide-y divide-zinc-800 bg-surface">
                                 <!-- JS Inyecta Filas Aquí -->
                             </tbody>
                         </table>
@@ -445,59 +465,58 @@
 
         <!-- ========================================== -->
         <!-- MODAL: VISTA PREVIA FICHA TÉCNICA (SOLO LECTURA) -->
-        <!-- ========================================== -->
-        <div id="viewEmployeeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden-view flex items-end sm:items-center justify-center sm:p-4">
-            <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl h-[85vh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden slide-up-mobile sm:fade-in relative pb-safe">
+        <div id="viewEmployeeModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden-view flex items-end sm:items-center justify-center sm:p-4">
+            <div class="bg-surface border border-zinc-800 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-2xl h-[85vh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden slide-up-mobile sm:fade-in relative pb-safe">
                 
                 <div class="w-full flex justify-center pt-3 pb-1 sm:hidden">
-                    <div class="w-12 h-1.5 bg-slate-200 rounded-full"></div>
+                    <div class="w-12 h-1.5 bg-zinc-700 rounded-full"></div>
                 </div>
 
-                <div class="px-5 md:px-6 py-3 md:py-4 border-b flex justify-between items-center bg-white sm:bg-slate-50 w-full">
-                    <h2 class="text-xl md:text-2xl font-black text-slate-800">Vista Ficha Técnica</h2>
+                <div class="px-5 md:px-6 py-3 md:py-4 border-b border-zinc-800 flex justify-between items-center bg-surface w-full">
+                    <h2 class="text-xl md:text-2xl font-black text-zinc-100">Vista Ficha Técnica</h2>
                     <div class="flex gap-2">
                         <!-- Botón flotante para editar -->
-                        <button id="viewModalEditBtn" class="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-full transition-colors active:scale-90" title="Editar Información"><i data-lucide="edit" class="w-5 h-5"></i></button>
-                        <button onclick="ui.closeViewModal()" class="text-slate-400 hover:text-red-500 p-2 bg-slate-50 hover:bg-red-50 rounded-full transition-colors active:scale-90"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        <button id="viewModalEditBtn" class="p-2 text-orange-500 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 rounded-full transition-colors active:scale-90" title="Editar Información"><i data-lucide="edit" class="w-5 h-5"></i></button>
+                        <button onclick="ui.closeViewModal()" class="text-zinc-400 hover:text-red-400 p-2 bg-zinc-800 hover:bg-red-500/10 rounded-full transition-colors active:scale-90"><i data-lucide="x" class="w-5 h-5"></i></button>
                     </div>
                 </div>
                 
                 <div class="p-5 md:p-6 overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar w-full space-y-6">
                     
                     <!-- Profile Header -->
-                    <div class="flex items-center gap-4 border-b border-slate-100 pb-4">
-                        <img id="viewFoto" src="" class="w-20 h-20 rounded-full object-cover border-2 border-slate-200 shadow-sm flex-shrink-0">
+                    <div class="flex items-center gap-4 border-b border-zinc-800 pb-4">
+                        <img id="viewFoto" src="" class="w-20 h-20 rounded-full object-cover border-2 border-zinc-700 shadow-sm flex-shrink-0 bg-zinc-800">
                         <div class="overflow-hidden">
-                            <h3 id="viewNombres" class="text-xl font-black text-slate-800 leading-tight truncate"></h3>
-                            <p id="viewCedula" class="text-sm text-slate-500 font-mono mt-1 font-semibold tracking-wide"></p>
+                            <h3 id="viewNombres" class="text-xl font-black text-zinc-100 leading-tight truncate"></h3>
+                            <p id="viewCedula" class="text-sm text-zinc-400 font-mono mt-1 font-semibold tracking-wide"></p>
                         </div>
                     </div>
 
                     <!-- Details Grid -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Info Personal -->
-                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i data-lucide="user" class="w-3.5 h-3.5"></i> Datos de Contacto</h4>
+                        <div class="bg-base p-4 rounded-2xl border border-zinc-800 shadow-inner">
+                            <h4 class="text-[10px] font-black text-orange-500/80 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i data-lucide="user" class="w-3.5 h-3.5"></i> Datos de Contacto</h4>
                             <div class="space-y-2.5 text-sm">
-                                <p class="flex justify-between items-center"><span class="text-slate-500 font-medium text-xs">Nacimiento:</span> <span id="viewCumple" class="font-bold text-slate-700 text-right"></span></p>
-                                <p class="flex justify-between items-center"><span class="text-slate-500 font-medium text-xs">Teléfono:</span> <span id="viewTel" class="font-bold text-slate-700 text-right"></span></p>
-                                <p class="flex flex-col"><span class="text-slate-500 font-medium text-xs mb-0.5">Correo Electrónico:</span> <span id="viewCorreo" class="font-bold text-slate-700 break-words leading-tight"></span></p>
-                                <p class="flex flex-col"><span class="text-slate-500 font-medium text-xs mb-0.5">Dirección:</span> <span id="viewDir" class="font-bold text-slate-700 break-words leading-tight"></span></p>
-                                <p class="flex flex-col"><span class="text-slate-500 font-medium text-xs mb-0.5">Emergencia:</span> <span id="viewEmergencia" class="font-bold text-slate-700 break-words leading-tight text-red-600"></span></p>
+                                <p class="flex justify-between items-center"><span class="text-zinc-500 font-medium text-xs">Nacimiento:</span> <span id="viewCumple" class="font-bold text-zinc-300 text-right"></span></p>
+                                <p class="flex justify-between items-center"><span class="text-zinc-500 font-medium text-xs">Teléfono:</span> <span id="viewTel" class="font-bold text-zinc-300 text-right"></span></p>
+                                <p class="flex flex-col"><span class="text-zinc-500 font-medium text-xs mb-0.5">Correo Electrónico:</span> <span id="viewCorreo" class="font-bold text-zinc-300 break-words leading-tight"></span></p>
+                                <p class="flex flex-col"><span class="text-zinc-500 font-medium text-xs mb-0.5">Dirección:</span> <span id="viewDir" class="font-bold text-zinc-300 break-words leading-tight"></span></p>
+                                <p class="flex flex-col"><span class="text-zinc-500 font-medium text-xs mb-0.5">Emergencia:</span> <span id="viewEmergencia" class="font-bold text-red-400 break-words leading-tight"></span></p>
                             </div>
                         </div>
 
                         <!-- Salud y ARL -->
-                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i> Salud y Seguridad</h4>
+                        <div class="bg-base p-4 rounded-2xl border border-zinc-800 shadow-inner">
+                            <h4 class="text-[10px] font-black text-orange-500/80 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i> Salud y Seguridad</h4>
                             <div class="space-y-2.5 text-sm">
-                                <p class="flex justify-between items-center"><span class="text-slate-500 font-medium text-xs">EPS Actual:</span> <span id="viewEps" class="font-black text-slate-700 uppercase"></span></p>
-                                <p class="flex justify-between items-center"><span class="text-slate-500 font-medium text-xs">Tipo de Sangre:</span> <span id="viewSangre" class="font-black text-red-600"></span></p>
+                                <p class="flex justify-between items-center"><span class="text-zinc-500 font-medium text-xs">EPS Actual:</span> <span id="viewEps" class="font-black text-zinc-300 uppercase"></span></p>
+                                <p class="flex justify-between items-center"><span class="text-zinc-500 font-medium text-xs">Tipo de Sangre:</span> <span id="viewSangre" class="font-black text-red-500"></span></p>
                                 
-                                <div class="pt-3 border-t border-slate-200 mt-3">
-                                    <p class="text-[10px] uppercase font-bold text-slate-400 mb-2">Estado de ARL</p>
+                                <div class="pt-3 border-t border-zinc-800 mt-3">
+                                    <p class="text-[10px] uppercase font-bold text-zinc-500 mb-2">Estado de ARL</p>
                                     <div id="viewArlBadge" class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black border"></div>
-                                    <p id="viewArlDetalle" class="text-[11px] font-medium text-slate-500 mt-1.5"></p>
+                                    <p id="viewArlDetalle" class="text-[11px] font-medium text-zinc-500 mt-1.5"></p>
                                 </div>
                             </div>
                         </div>
@@ -505,7 +524,7 @@
 
                     <!-- Documentos Descargables -->
                     <div>
-                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i data-lucide="folder-down" class="w-3.5 h-3.5"></i> Documentos Adjuntos</h4>
+                        <h4 class="text-[10px] font-black text-orange-500/80 uppercase tracking-widest mb-3 flex items-center gap-1.5"><i data-lucide="folder-down" class="w-3.5 h-3.5"></i> Documentos Adjuntos</h4>
                         <div id="viewDocsContainer" class="flex flex-col sm:flex-row gap-3">
                             <!-- Botones insertados por JS -->
                         </div>
@@ -515,24 +534,21 @@
             </div>
         </div>
 
-
-        <!-- ========================================== -->
         <!-- MODAL: FORMULARIO EDICIÓN / NUEVO EMPLEADO -->
-        <!-- ========================================== -->
-        <div id="employeeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden-view flex items-end sm:items-center justify-center sm:p-4">
+        <div id="employeeModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden-view flex items-end sm:items-center justify-center sm:p-4">
             
-            <div class="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-4xl h-[92vh] sm:h-auto sm:max-h-[95vh] flex flex-col overflow-hidden slide-up-mobile sm:fade-in relative pb-safe">
+            <div class="bg-surface border border-zinc-800 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-4xl h-[92vh] sm:h-auto sm:max-h-[95vh] flex flex-col overflow-hidden slide-up-mobile sm:fade-in relative pb-safe">
                 
                 <div class="w-full flex justify-center pt-3 pb-1 sm:hidden">
-                    <div class="w-12 h-1.5 bg-slate-200 rounded-full"></div>
+                    <div class="w-12 h-1.5 bg-zinc-700 rounded-full"></div>
                 </div>
 
-                <div class="px-5 md:px-6 py-3 md:py-4 border-b flex justify-between items-center bg-white sm:bg-slate-50 w-full">
+                <div class="px-5 md:px-6 py-3 md:py-4 border-b border-zinc-800 flex justify-between items-center bg-surface w-full">
                     <div class="flex items-center gap-2">
-                        <i data-lucide="edit-3" class="w-5 h-5 text-indigo-500"></i>
-                        <h2 id="empModalTitle" class="text-xl md:text-2xl font-black text-slate-800">Modo Edición</h2>
+                        <i data-lucide="edit-3" class="w-5 h-5 text-orange-500"></i>
+                        <h2 id="empModalTitle" class="text-xl md:text-2xl font-black text-zinc-100">Modo Edición</h2>
                     </div>
-                    <button onclick="ui.closeEmployeeModal()" class="text-slate-400 hover:text-red-500 p-2 bg-slate-50 hover:bg-red-50 rounded-full transition-colors active:scale-90"><i data-lucide="x" class="w-6 h-6"></i></button>
+                    <button onclick="ui.closeEmployeeModal()" class="text-zinc-500 hover:text-red-400 p-2 bg-zinc-800 hover:bg-red-500/10 rounded-full transition-colors active:scale-90"><i data-lucide="x" class="w-6 h-6"></i></button>
                 </div>
                 
                 <div class="p-5 md:p-6 overflow-y-auto overflow-x-hidden flex-1 custom-scrollbar w-full">
@@ -542,46 +558,46 @@
                         <!-- FOTO DE PERFIL RRHH -->
                         <div class="col-span-1 md:col-span-2 flex flex-col items-center justify-center mb-2">
                             <div class="avatar-upload-wrapper shadow-sm">
-                                <i data-lucide="camera" class="w-8 h-8 text-slate-400"></i>
+                                <i data-lucide="camera" class="w-8 h-8 text-zinc-600"></i>
                                 <input type="file" id="empFileFoto" accept="image/*" onchange="utils.previewAvatar(event, 'empAvatarPreview')">
                                 <img id="empAvatarPreview" src="" alt="Avatar" class="hidden">
                                 <input type="hidden" id="empFileFotoBase64">
                             </div>
-                            <p class="text-[10px] text-slate-400 mt-2 font-medium">Actualizar foto (Opcional)</p>
+                            <p class="text-[10px] text-zinc-500 mt-2 font-medium">Actualizar foto (Opcional)</p>
                         </div>
 
                         <!-- Info Personal -->
-                        <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 w-full mt-2">
-                            <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Info. Personal</h3>
+                        <div class="col-span-1 md:col-span-2 border-b border-zinc-800 pb-2 mb-1 w-full mt-2">
+                            <h3 class="text-[11px] md:text-sm font-black text-orange-500/80 uppercase tracking-widest flex items-center gap-2"><i data-lucide="user" class="w-4 h-4"></i> Info. Personal</h3>
                         </div>
                         <div class="w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Nombres</label>
-                            <input type="text" id="empNombres" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Nombres">
+                            <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Nombres</label>
+                            <input type="text" id="empNombres" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-base focus:bg-surface text-white transition-colors" placeholder="Nombres">
                         </div>
                         <div class="w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Apellidos</label>
-                            <input type="text" id="empApellidos" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Apellidos">
+                            <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Apellidos</label>
+                            <input type="text" id="empApellidos" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-base focus:bg-surface text-white transition-colors" placeholder="Apellidos">
                         </div>
                         <div class="w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Cédula</label>
-                            <input type="number" id="empCedula" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Sin puntos">
+                            <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Cédula</label>
+                            <input type="number" id="empCedula" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-base focus:bg-surface text-white transition-colors" placeholder="Sin puntos">
                         </div>
                         <div class="w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Fecha de Nacimiento</label>
-                            <input type="date" id="empCumple" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white">
+                            <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Fecha de Nacimiento</label>
+                            <input type="date" id="empCumple" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-base focus:bg-surface text-white transition-colors">
                         </div>
 
                         <!-- Salud General -->
-                        <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2 w-full">
-                            <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="heart-pulse" class="w-4 h-4"></i> Salud</h3>
+                        <div class="col-span-1 md:col-span-2 border-b border-zinc-800 pb-2 mb-1 mt-2 w-full">
+                            <h3 class="text-[11px] md:text-sm font-black text-orange-500/80 uppercase tracking-widest flex items-center gap-2"><i data-lucide="heart-pulse" class="w-4 h-4"></i> Salud</h3>
                         </div>
                         <div class="w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">EPS</label>
-                            <input type="text" id="empEps" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Nombre EPS">
+                            <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">EPS</label>
+                            <input type="text" id="empEps" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-base focus:bg-surface text-white transition-colors" placeholder="Nombre EPS">
                         </div>
                         <div class="w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Tipo de Sangre</label>
-                            <select id="empSangre" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white">
+                            <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Tipo de Sangre</label>
+                            <select id="empSangre" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-base focus:bg-surface text-white transition-colors">
                                 <option value="">Seleccione...</option>
                                 <option value="O+">O Positivo (O+)</option><option value="O-">O Negativo (O-)</option>
                                 <option value="A+">A Positivo (A+)</option><option value="A-">A Negativo (A-)</option>
@@ -591,71 +607,71 @@
                         </div>
 
                         <!-- GESTIÓN ARL AGRUPADA -->
-                        <div class="col-span-1 md:col-span-2 bg-slate-50 border border-slate-200 rounded-2xl p-4 mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                            <div class="col-span-1 md:col-span-2 border-b border-slate-200 pb-2 w-full">
-                                <h3 class="text-[11px] md:text-sm font-black text-indigo-700 uppercase tracking-widest flex items-center gap-2"><i data-lucide="shield-alert" class="w-4 h-4"></i> Gestión Integral ARL</h3>
-                                <p class="text-[10px] text-slate-500 mt-1">El sistema calculará automáticamente si la ARL está activa según la duración.</p>
+                        <div class="col-span-1 md:col-span-2 bg-base border border-zinc-800 shadow-inner rounded-2xl p-4 mt-2 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                            <div class="col-span-1 md:col-span-2 border-b border-zinc-800 pb-2 w-full">
+                                <h3 class="text-[11px] md:text-sm font-black text-orange-500 uppercase tracking-widest flex items-center gap-2"><i data-lucide="shield-alert" class="w-4 h-4"></i> Gestión Integral ARL</h3>
+                                <p class="text-[10px] text-zinc-500 mt-1">El sistema calculará automáticamente si la ARL está activa según la duración.</p>
                             </div>
                             
                             <div class="w-full">
-                                <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Fecha de Inicio ARL</label>
-                                <input type="date" id="empArlFecha" class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-white">
+                                <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Fecha de Inicio ARL</label>
+                                <input type="date" id="empArlFecha" class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-surface text-white">
                             </div>
                             <div class="w-full">
-                                <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Duración ARL</label>
-                                <select id="empArlDuracion" class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-white">
+                                <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Duración ARL</label>
+                                <select id="empArlDuracion" class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-surface text-white">
                                     <option value="No activo" selected>No activo</option>
                                     <option value="15 Días">15 Días</option>
                                     <option value="1 Mes">1 Mes</option>
                                 </select>
                             </div>
                             <div class="col-span-1 md:col-span-2 w-full mt-2">
-                                <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Subir/Actualizar Certificado ARL (PDF)</label>
+                                <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-2 uppercase tracking-wide">Subir/Actualizar Certificado ARL (PDF)</label>
                                 <div class="relative w-full">
-                                    <input type="file" id="empFileArl" accept="application/pdf" class="w-full px-4 py-2 bg-white border-2 border-slate-200 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-emerald-100 file:text-emerald-700 cursor-pointer">
+                                    <input type="file" id="empFileArl" accept="application/pdf" class="w-full px-4 py-2 bg-surface text-zinc-300 border border-zinc-700 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-orange-500/10 file:text-orange-500 hover:file:bg-orange-500/20 cursor-pointer">
                                 </div>
                                 <input type="hidden" id="empFileArlBase64">
                             </div>
                         </div>
 
                         <!-- Contacto -->
-                        <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2 w-full">
-                            <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i> Contacto</h3>
+                        <div class="col-span-1 md:col-span-2 border-b border-zinc-800 pb-2 mb-1 mt-2 w-full">
+                            <h3 class="text-[11px] md:text-sm font-black text-orange-500/80 uppercase tracking-widest flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i> Contacto</h3>
                         </div>
                         <div class="w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Teléfono Celular</label>
-                            <input type="tel" id="empTel" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Celular">
+                            <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Teléfono Celular</label>
+                            <input type="tel" id="empTel" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-base focus:bg-surface text-white transition-colors" placeholder="Celular">
                         </div>
                         <div class="w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Correo Electrónico</label>
-                            <input type="email" id="empCorreo" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="correo@ejemplo.com">
+                            <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Correo Electrónico</label>
+                            <input type="email" id="empCorreo" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-base focus:bg-surface text-white transition-colors" placeholder="correo@ejemplo.com">
                         </div>
                         <div class="col-span-1 md:col-span-2 w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Dirección de Vivienda</label>
-                            <input type="text" id="empDir" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Ej: Calle 123 # 45-67">
+                            <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Dirección de Vivienda</label>
+                            <input type="text" id="empDir" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-base focus:bg-surface text-white transition-colors" placeholder="Ej: Calle 123 # 45-67">
                         </div>
                         <div class="col-span-1 md:col-span-2 w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-1 uppercase tracking-wide">Contacto de Emergencia</label>
-                            <input type="text" id="empEmergencia" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border-2 border-slate-200 focus:border-indigo-500 outline-none text-base bg-slate-50 focus:bg-white" placeholder="Nombre y teléfono del acudiente">
+                            <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-1 uppercase tracking-wide">Contacto de Emergencia</label>
+                            <input type="text" id="empEmergencia" required class="w-full px-4 py-3.5 md:py-2.5 rounded-xl border border-zinc-700 focus:border-orange-500 outline-none text-base bg-base focus:bg-surface text-white transition-colors" placeholder="Nombre y teléfono del acudiente">
                         </div>
 
                         <!-- Documentos PDF Personales -->
-                        <div class="col-span-1 md:col-span-2 border-b border-slate-100 pb-2 mb-1 mt-2 w-full">
-                            <h3 class="text-[11px] md:text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"><i data-lucide="file-up" class="w-4 h-4"></i> Archivo de Identidad</h3>
+                        <div class="col-span-1 md:col-span-2 border-b border-zinc-800 pb-2 mb-1 mt-2 w-full">
+                            <h3 class="text-[11px] md:text-sm font-black text-orange-500/80 uppercase tracking-widest flex items-center gap-2"><i data-lucide="file-up" class="w-4 h-4"></i> Archivo de Identidad</h3>
                         </div>
                         
                         <div class="col-span-1 md:col-span-2 w-full">
-                            <label class="block text-[11px] font-bold text-slate-700 ml-1 mb-2 uppercase tracking-wide">Actualizar Cédula PDF (Opcional)</label>
+                            <label class="block text-[11px] font-bold text-zinc-400 ml-1 mb-2 uppercase tracking-wide">Actualizar Cédula PDF (Opcional)</label>
                             <div class="relative w-full">
-                                <input type="file" id="empFileCedula" accept="application/pdf" class="w-full px-4 py-2 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-indigo-100 file:text-indigo-700 cursor-pointer">
+                                <input type="file" id="empFileCedula" accept="application/pdf" class="w-full px-4 py-2 bg-base border border-zinc-700 rounded-xl text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-orange-500/10 file:text-orange-500 hover:file:bg-orange-500/20 text-zinc-300 cursor-pointer">
                             </div>
                             <input type="hidden" id="empFileCedulaBase64">
                         </div>
 
                         <!-- Botones inferiores -->
-                        <div class="col-span-1 md:col-span-2 flex flex-col-reverse md:flex-row justify-end gap-3 pt-6 pb-4 md:pb-0 mt-4 border-t border-slate-100 w-full">
-                            <button type="button" onclick="ui.closeEmployeeModal()" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors active:scale-95">Cancelar</button>
-                            <button type="submit" id="saveEmployeeBtn" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 active:scale-95">Guardar Cambios</button>
+                        <div class="col-span-1 md:col-span-2 flex flex-col-reverse md:flex-row justify-end gap-3 pt-6 pb-4 md:pb-0 mt-4 border-t border-zinc-800 w-full">
+                            <button type="button" onclick="ui.closeEmployeeModal()" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-zinc-400 bg-zinc-800 hover:bg-zinc-700 hover:text-white transition-colors active:scale-95">Cancelar</button>
+                            <button type="submit" id="saveEmployeeBtn" class="w-full md:w-auto px-6 py-4 md:py-2.5 rounded-xl font-bold text-white bg-orange-600 hover:bg-orange-500 btn-glow transition-colors active:scale-95">Guardar Cambios</button>
                         </div>
                     </form>
                 </div>
@@ -668,7 +684,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc, updateDoc, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // =========================================================
         // ⚠️ ATENCIÓN: CONFIGURACIÓN DE TU BASE DE DATOS FIREBASE
@@ -764,7 +780,7 @@
             },
             getArlStatus: (fecha, duracion) => {
                 if (!fecha || duracion === 'No activo') {
-                    return { status: 'NO ACTIVA', color: 'text-red-600', bg: 'bg-red-100', dot: 'bg-red-500' };
+                    return { status: 'NO ACTIVA', color: 'text-red-500', bg: 'bg-red-500/10', dot: 'bg-red-500', border: 'border-red-500/20' };
                 }
                 const startParts = fecha.split('-');
                 const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2], 0, 0, 0);
@@ -780,9 +796,9 @@
                 endDate.setHours(23, 59, 59, 999);
 
                 if (now > endDate) {
-                    return { status: 'VENCIDA', color: 'text-orange-600', bg: 'bg-orange-100', dot: 'bg-orange-500' };
+                    return { status: 'VENCIDA', color: 'text-orange-400', bg: 'bg-orange-500/10', dot: 'bg-orange-500', border: 'border-orange-500/20' };
                 }
-                return { status: 'VIGENTE', color: 'text-emerald-700', bg: 'bg-emerald-100', dot: 'bg-emerald-500' };
+                return { status: 'VIGENTE', color: 'text-emerald-500', bg: 'bg-emerald-500/10', dot: 'bg-emerald-500', border: 'border-emerald-500/20' };
             }
         };
 
@@ -797,9 +813,9 @@
             },
             toast: (msg, type = 'success') => {
                 const toast = document.createElement('div');
-                let bgColor = type === 'error' ? 'bg-red-600' : type === 'info' ? 'bg-indigo-600' : 'bg-emerald-600';
+                let bgColor = type === 'error' ? 'bg-red-500/10 border-red-500/30 text-red-400' : type === 'info' ? 'bg-zinc-800 border-zinc-700 text-orange-400' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400';
                 let icon = type === 'error' ? 'alert-circle' : type === 'info' ? 'info' : 'check-circle-2';
-                toast.className = `flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl text-white font-bold text-sm toast-enter w-full md:w-auto md:min-w-[300px] border border-white/20 backdrop-blur-md ${bgColor}`;
+                toast.className = `flex items-center gap-3 px-5 py-4 rounded-2xl shadow-2xl font-bold text-sm toast-enter w-full md:w-auto md:min-w-[300px] border backdrop-blur-md ${bgColor}`;
                 toast.innerHTML = `<i data-lucide="${icon}" class="w-6 h-6 flex-shrink-0"></i><span>${msg}</span>`;
                 document.getElementById('toastContainer').appendChild(toast);
                 lucide.createIcons({ root: toast });
@@ -829,24 +845,24 @@
                 document.getElementById('viewEps').innerText = emp.eps || 'No registrado';
                 document.getElementById('viewSangre').innerText = emp.tipoSangre || 'N/A';
 
-                const avatarSrc = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
+                const avatarSrc = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=27272a&color=f97316`;
                 document.getElementById('viewFoto').src = avatarSrc;
 
                 const arl = utils.getArlStatus(emp.fechaArl, emp.duracionArl);
                 const arlBadge = document.getElementById('viewArlBadge');
-                arlBadge.className = `inline-flex items-center px-2.5 py-1 rounded-md text-[10px] uppercase font-black border opacity-90 gap-1.5 ${arl.bg} ${arl.color}`;
+                arlBadge.className = `inline-flex items-center px-2.5 py-1 rounded-md text-[10px] uppercase font-black border opacity-90 gap-1.5 ${arl.bg} ${arl.color} ${arl.border}`;
                 arlBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${arl.dot}"></span> ${arl.status}`;
                 document.getElementById('viewArlDetalle').innerText = emp.fechaArl ? `${emp.fechaArl} (${emp.duracionArl})` : 'Sin fecha de vinculación registrada';
 
                 let docsHtml = '';
                 if(emp.fileCedula) {
-                    docsHtml += `<button onclick="utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" class="flex-1 bg-indigo-50 text-indigo-700 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-indigo-100 transition-colors border border-indigo-100 shadow-sm active:scale-95"><i data-lucide="id-card" class="w-4 h-4"></i> Ver Cédula</button>`;
+                    docsHtml += `<button onclick="utils.downloadBase64PDF('${emp.fileCedula}', 'Cedula_${emp.cedula}.pdf')" class="flex-1 bg-zinc-800 text-zinc-200 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-zinc-700 transition-colors border border-zinc-700 shadow-sm active:scale-95"><i data-lucide="id-card" class="w-4 h-4"></i> Ver Cédula</button>`;
                 }
                 if(emp.fileArl) {
-                    docsHtml += `<button onclick="utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" class="flex-1 bg-emerald-50 text-emerald-700 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-emerald-100 transition-colors border border-emerald-100 shadow-sm active:scale-95"><i data-lucide="file-check-2" class="w-4 h-4"></i> Ver ARL</button>`;
+                    docsHtml += `<button onclick="utils.downloadBase64PDF('${emp.fileArl}', 'ARL_${emp.cedula}.pdf')" class="flex-1 bg-emerald-500/10 text-emerald-500 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 hover:bg-emerald-500/20 transition-colors border border-emerald-500/20 shadow-sm active:scale-95"><i data-lucide="file-check-2" class="w-4 h-4"></i> Ver ARL</button>`;
                 }
                 if(!emp.fileCedula && !emp.fileArl) {
-                    docsHtml = `<div class="w-full text-center text-xs font-medium text-slate-400 py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">No hay documentos adjuntos para este perfil.</div>`;
+                    docsHtml = `<div class="w-full text-center text-xs font-medium text-zinc-600 py-4 bg-base rounded-xl border border-dashed border-zinc-800">No hay documentos adjuntos para este perfil.</div>`;
                 }
                 document.getElementById('viewDocsContainer').innerHTML = docsHtml;
 
@@ -924,17 +940,15 @@
                         const label = document.getElementById('fileNameLabel');
                         if(e.target.files.length > 0) {
                             label.innerText = e.target.files[0].name;
-                            label.classList.add('text-indigo-600', 'font-bold');
+                            label.classList.add('text-orange-500', 'font-bold');
                         }
                     });
                 }
 
-                // MANEJADOR CENTRAL: Reconecta el tiempo real de manera segura según la sesión
                 onAuthStateChanged(auth, (user) => {
                     const urlParams = new URLSearchParams(window.location.search);
                     const isPublicForm = urlParams.get('token');
                     
-                    // Si estamos en la vista del formulario público, NO cargamos la base de datos completa.
                     if (isPublicForm) return; 
 
                     if (user) {
@@ -945,7 +959,6 @@
                     }
                 });
 
-                // SIEMPRE AUTENTICAR PRIMERO (Requisito de Firebase para consultar datos)
                 try {
                     if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                         await signInWithCustomToken(auth, __initial_auth_token);
@@ -960,29 +973,19 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const publicToken = urlParams.get('token');
 
-                // Si entran por URL pública (SISTEMA DE TOKENS UNICOS)
                 if(publicToken) {
                     ui.hide('view-login');
-                    ui.show('view-employee-form'); // ¡AQUÍ ESTABA EL ERROR! Siempre debe mostrarse el contenedor base primero.
-
                     try {
                         const tokenDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registration_links', publicToken));
                         if (tokenDoc.exists() && tokenDoc.data().active === true) {
-                            // Mostrar Formulario y Ocultar Error
-                            document.getElementById('publicFormContainer').classList.remove('hidden-view');
-                            document.getElementById('view-token-error').classList.add('hidden-view');
-                            
+                            ui.show('view-employee-form');
                             document.getElementById('pubCompanyId').value = tokenDoc.data().companyId;
                             document.getElementById('pubTokenId').value = publicToken;
                         } else {
-                            // Ocultar Formulario y Mostrar Error (Link Usado o Inválido)
-                            document.getElementById('publicFormContainer').classList.add('hidden-view');
-                            document.getElementById('view-token-error').classList.remove('hidden-view');
+                            ui.show('view-token-error');
                         }
                     } catch(e) {
-                        console.error("Error validando el token público:", e);
-                        document.getElementById('publicFormContainer').classList.add('hidden-view');
-                        document.getElementById('view-token-error').classList.remove('hidden-view');
+                        ui.show('view-token-error');
                     }
                     return; 
                 }
@@ -996,7 +999,7 @@
             },
 
             setupRealtimeListeners: () => {
-                appState.clearListeners(); // Prevenir duplicados
+                appState.clearListeners(); 
 
                 const unsubComp = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'companies'), snap => {
                     appData.companies = snap.docs.map(d => ({id: d.id, ...d.data()}));
@@ -1006,7 +1009,6 @@
                 const unsubUsers = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'users'), snap => {
                     appData.users = snap.docs.map(d => ({id: d.id, ...d.data()}));
                     
-                    // Mantener el usuario actual sincronizado (por si el SuperAdmin le edita la empresa en vivo)
                     if (appData.currentUser && appData.currentUser.email) {
                         const freshUser = appData.users.find(u => u.email === appData.currentUser.email);
                         if (freshUser) appData.currentUser = freshUser;
@@ -1028,37 +1030,29 @@
                 if (appData.currentUser.role === 'SUPER_ADMIN') {
                     appState.renderSuperAdmin();
                 } else if (appData.currentUser.role === 'COMPANY_ADMIN') {
-                    appState.routeUserAfterLogin(); // Refresca barra de navegación (logos y nombres)
-                    appState.renderEmployees(); // Actualiza el directorio de personal
+                    appState.routeUserAfterLogin(); 
+                    appState.renderEmployees(); 
                 }
             },
 
-            // --- LOGICA GOOGLE AUTH ---
             loginWithGoogle: async () => {
                 const provider = new GoogleAuthProvider();
                 try {
                     const result = await signInWithPopup(auth, provider);
                     const email = result.user.email.toLowerCase();
-
-                    // FIX DE SEGURIDAD: Consultamos directamente a la base de datos 
-                    // en vez de usar la variable local para evitar que conexiones lentas
-                    // generen Super Administradores por error.
                     
                     const userDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'users', email);
                     const userSnap = await getDoc(userDocRef);
 
-                    // 1. Verificamos si el usuario ya existe explícitamente en la BD
                     if (userSnap.exists()) {
                         appData.currentUser = { id: userSnap.id, ...userSnap.data() };
                         appState.routeUserAfterLogin();
                         return;
                     }
 
-                    // 2. Si el usuario no existe, comprobamos si la BD está REALMENTE vacía en el servidor
                     const usersSnapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'users'));
 
                     if (usersSnapshot.empty) {
-                        // Es el primer usuario real de todo el sistema
                         const superAdminData = { email: email, role: 'SUPER_ADMIN' };
                         await setDoc(userDocRef, superAdminData);
                         appData.currentUser = superAdminData;
@@ -1067,7 +1061,6 @@
                         return;
                     }
 
-                    // 3. Si la base de datos NO está vacía, y el usuario no existe: Bloqueamos.
                     await signOut(auth);
                     return ui.toast('Acceso denegado. Este correo no está autorizado.', 'error');
                     
@@ -1164,10 +1157,8 @@
                         status: 'active'
                     };
 
-                    // Guardar empleado
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), data);
                     
-                    // DESACTIVAR TOKEN (Un solo uso)
                     if(tokenId) {
                         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registration_links', tokenId), {
                             active: false,
@@ -1186,7 +1177,6 @@
                 }
             },
 
-            // --- SUPER ADMIN CRUD ---
             createCompany: async (e) => {
                 e.preventDefault();
                 const btn = e.target.querySelector('button[type="submit"]');
@@ -1296,17 +1286,17 @@
 
             renderSuperAdmin: () => {
                 const compHtml = appData.companies.map(c => `
-                    <li class="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center text-sm gap-3">
+                    <li class="p-3 bg-zinc-950 border border-zinc-800 rounded-2xl flex justify-between items-center text-sm gap-3 hover:border-orange-500/30 transition-colors">
                         <div class="flex items-center gap-3 flex-1 min-w-0">
-                            ${c.logo ? `<img src="${c.logo}" class="w-10 h-10 rounded-xl object-cover border border-slate-200">` : `<div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-500"><i data-lucide="building" class="w-5 h-5"></i></div>`}
-                            <span class="font-bold text-slate-700 truncate">${utils.escapeHTML(c.name)}</span>
+                            ${c.logo ? `<img src="${c.logo}" class="w-10 h-10 rounded-xl object-cover border border-zinc-700 bg-surface">` : `<div class="w-10 h-10 bg-zinc-900 rounded-xl flex items-center justify-center text-orange-500 border border-zinc-800"><i data-lucide="building" class="w-5 h-5"></i></div>`}
+                            <span class="font-bold text-zinc-200 truncate">${utils.escapeHTML(c.name)}</span>
                         </div>
                         <div class="flex gap-1">
-                            <button onclick="appState.editCompany('${c.id}')" class="p-2 text-slate-400 hover:text-indigo-600"><i data-lucide="edit" class="w-4 h-4"></i></button>
-                            <button onclick="appState.deleteCompany('${c.id}')" class="p-2 text-slate-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <button onclick="appState.editCompany('${c.id}')" class="p-2 text-zinc-500 hover:text-orange-500"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                            <button onclick="appState.deleteCompany('${c.id}')" class="p-2 text-zinc-500 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                         </div>
                     </li>
-                `).join('') || '<li class="text-sm text-slate-400 p-2 text-center">No hay empresas.</li>';
+                `).join('') || '<li class="text-sm text-zinc-600 p-2 text-center">No hay empresas.</li>';
                 document.getElementById('companiesList').innerHTML = compHtml;
 
                 const optsHtml = '<option value="">Seleccione una Empresa...</option>' + 
@@ -1315,23 +1305,19 @@
 
                 const usersHtml = appData.users.filter(u => u.role === 'COMPANY_ADMIN').map(u => {
                     const compName = appData.companies.find(c => c.id === u.companyId)?.name || 'Desconocida';
-                    return `<li class="p-3 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center text-sm"><div><div class="font-bold text-slate-800">${utils.escapeHTML(u.email)}</div><div class="text-[10px] text-slate-500">${utils.escapeHTML(compName)}</div></div><button onclick="appState.deleteUser('${u.email}')" class="p-2 text-slate-400 hover:text-red-600"><i data-lucide="user-x" class="w-4 h-4"></i></button></li>`;
+                    return `<li class="p-3 bg-zinc-950 border border-zinc-800 rounded-2xl flex justify-between items-center text-sm hover:border-emerald-500/30 transition-colors"><div><div class="font-bold text-zinc-200">${utils.escapeHTML(u.email)}</div><div class="text-[10px] text-zinc-500">${utils.escapeHTML(compName)}</div></div><button onclick="appState.deleteUser('${u.email}')" class="p-2 text-zinc-500 hover:text-red-500"><i data-lucide="user-x" class="w-4 h-4"></i></button></li>`;
                 }).join('');
                 document.getElementById('usersList').innerHTML = usersHtml;
                 lucide.createIcons();
             },
 
-            // --- GESTION DE ENLACES UNICOS (SEGURIDAD) ---
             generateRegistrationLink: async () => {
                 if(!appData.currentUser || !appData.currentUser.companyId) return;
                 
-                // Generar Token Único
                 const token = crypto.randomUUID();
-                
                 ui.toast("Generando enlace único...", "info");
 
                 try {
-                    // Guardar el token en la BD como activo
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'registration_links', token), {
                         companyId: appData.currentUser.companyId,
                         active: true,
@@ -1342,12 +1328,12 @@
                     
                     if (navigator.clipboard) {
                         await navigator.clipboard.writeText(link);
-                        ui.toast("Enlace ÚNICO copiado. Expira al usarse.", "success");
+                        ui.toast("Enlace ÚNICO copiado.", "success");
                     } else {
                         prompt("Copia este enlace de un solo uso:", link);
                     }
                 } catch(e) {
-                    ui.toast("Error al generar enlace seguro", "error");
+                    ui.toast("Error al generar enlace", "error");
                 }
             },
             
@@ -1404,7 +1390,7 @@
             },
 
             softDeleteEmployee: (id) => {
-                ui.openConfirm("Mover a Papelera", "¿Estás seguro de enviar a este empleado a la papelera? Podrás restaurarlo más adelante si se reintegra.", async () => {
+                ui.openConfirm("Mover a Papelera", "¿Estás seguro de enviar a este empleado a la papelera?", async () => {
                     await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), {
                         status: 'deleted',
                         deletedAt: new Date().toISOString()
@@ -1419,12 +1405,12 @@
                         status: 'active',
                         deletedAt: null
                     });
-                    ui.toast("Personal restaurado con éxito");
+                    ui.toast("Personal restaurado");
                 });
             },
 
             hardDeleteEmployee: (id) => {
-                ui.openConfirm("Eliminar Definitivamente", "Esta acción es irreversible y borrará todos los datos y documentos adjuntos. ¿Continuar?", async () => {
+                ui.openConfirm("Eliminar Definitivamente", "Esta acción es irreversible y borrará todos los datos.", async () => {
                     await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id));
                     ui.toast("Eliminado permanentemente");
                 });
@@ -1436,7 +1422,7 @@
                 const viewMode = document.getElementById('empFilterStatus')?.value || 'active';
 
                 const myEmps = appData.employees.filter(e => {
-                    const eStatus = e.status || 'active'; // Retrocompatibilidad para empleados antiguos
+                    const eStatus = e.status || 'active';
                     return e.companyId === appData.currentUser.companyId && 
                            (e.nombres.toLowerCase().includes(search) || e.cedula.includes(search)) &&
                            eStatus === viewMode;
@@ -1445,46 +1431,47 @@
                 document.getElementById('empCount').innerText = `${myEmps.length} Registros`;
                 let dHtml = ''; let mHtml = '';
                 if (myEmps.length === 0) {
-                    dHtml = '<tr><td colSpan="5" class="p-12 text-center text-slate-400 bg-slate-50">Sin registros.</td></tr>';
-                    mHtml = '<div class="p-8 text-center text-slate-400 text-sm">Sin registros.</div>';
+                    dHtml = '<tr><td colSpan="5" class="p-12 text-center text-zinc-500 bg-surface">Sin registros.</td></tr>';
+                    mHtml = '<div class="p-8 text-center text-zinc-500 text-sm">Sin registros.</div>';
                 } else {
                     mHtml = myEmps.map(emp => {
                         const arl = utils.getArlStatus(emp.fechaArl, emp.duracionArl);
-                        const avatar = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
+                        const avatar = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=27272a&color=f97316`;
                         
                         let actionsHtml = '';
                         if (viewMode === 'active') {
                             actionsHtml = `
-                                <button onclick="event.stopPropagation(); appState.editEmployee('${emp.id}')" title="Editar" class="p-2.5 text-slate-400 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-50 rounded-xl"><i data-lucide="edit" class="w-4 h-4"></i></button>
-                                <button onclick="event.stopPropagation(); appState.softDeleteEmployee('${emp.id}')" title="Papelera" class="p-2.5 text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50 rounded-xl"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                <button onclick="event.stopPropagation(); appState.editEmployee('${emp.id}')" title="Editar" class="p-2.5 text-zinc-400 hover:text-orange-500 bg-zinc-900 hover:bg-zinc-800 rounded-xl transition-colors"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                                <button onclick="event.stopPropagation(); appState.softDeleteEmployee('${emp.id}')" title="Papelera" class="p-2.5 text-zinc-400 hover:text-red-500 bg-zinc-900 hover:bg-zinc-800 rounded-xl transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             `;
                         } else {
                             actionsHtml = `
-                                <button onclick="event.stopPropagation(); appState.restoreEmployee('${emp.id}')" title="Restaurar" class="px-3 py-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl flex items-center gap-1 font-bold text-xs"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Restaurar</button>
-                                <button onclick="event.stopPropagation(); appState.hardDeleteEmployee('${emp.id}')" title="Purgar" class="p-2.5 text-red-400 bg-red-50 hover:bg-red-100 hover:text-red-600 rounded-xl"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                                <button onclick="event.stopPropagation(); appState.restoreEmployee('${emp.id}')" title="Restaurar" class="px-3 py-2 text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 rounded-xl flex items-center gap-1 font-bold text-xs transition-colors"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Restaurar</button>
+                                <button onclick="event.stopPropagation(); appState.hardDeleteEmployee('${emp.id}')" title="Purgar" class="p-2.5 text-red-500 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 rounded-xl transition-colors"><i data-lucide="trash" class="w-4 h-4"></i></button>
                             `;
                         }
 
-                        return `<div onclick="appState.viewEmployee('${emp.id}')" class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col gap-3"><div class="flex justify-between items-start gap-3"><div class="flex gap-3 items-center"><img src="${avatar}" class="w-12 h-12 rounded-full object-cover border border-slate-200 flex-shrink-0"><div><h3 class="font-black text-slate-800 text-lg leading-tight truncate">${utils.escapeHTML(emp.nombres)}</h3><p class="text-xs text-slate-500 font-mono tracking-wide">CC: ${utils.escapeHTML(emp.cedula)}</p></div></div><div class="flex gap-1.5 flex-shrink-0">${actionsHtml}</div></div><div class="flex justify-between items-center mt-1 pt-3 border-t border-slate-100"><div><div class="text-[10px] font-bold text-slate-500 flex items-center">ARL <span class="px-2 py-0.5 ml-2 rounded-full ${arl.bg} ${arl.color}">${arl.status}</span></div></div><div class="flex gap-2">${emp.fileCedula ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileCedula}', 'CC.pdf')" class="p-2 bg-slate-800 text-white rounded-lg"><i data-lucide="id-card" class="w-4 h-4"></i></button>`:''}</div></div></div>`;
+                        return `<div onclick="appState.viewEmployee('${emp.id}')" class="bg-base border border-zinc-800 rounded-2xl p-4 shadow-sm flex flex-col gap-3 hover:border-orange-500/30 transition-all cursor-pointer"><div class="flex justify-between items-start gap-3"><div class="flex gap-3 items-center"><img src="${avatar}" class="w-12 h-12 rounded-full object-cover border border-zinc-700 flex-shrink-0"><div><h3 class="font-black text-zinc-100 text-lg leading-tight truncate">${utils.escapeHTML(emp.nombres)}</h3><p class="text-xs text-zinc-500 font-mono tracking-wide">CC: ${utils.escapeHTML(emp.cedula)}</p></div></div><div class="flex gap-1.5 flex-shrink-0">${actionsHtml}</div></div><div class="flex justify-between items-center mt-1 pt-3 border-t border-zinc-800"><div><div class="text-[10px] font-bold text-zinc-500 flex items-center">ARL <span class="px-2 py-0.5 ml-2 rounded-full ${arl.bg} ${arl.color} border ${arl.border}">${arl.status}</span></div></div><div class="flex gap-2">${emp.fileCedula ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileCedula}', 'CC.pdf')" class="p-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg transition-colors border border-zinc-700"><i data-lucide="id-card" class="w-4 h-4"></i></button>`:''}</div></div></div>`;
                     }).join('');
+                    
                     dHtml = myEmps.map(emp => {
                         const arl = utils.getArlStatus(emp.fechaArl, emp.duracionArl);
-                        const avatar = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=e0e7ff&color=4f46e5`;
+                        const avatar = emp.fotoPerfil || `https://ui-avatars.com/api/?name=${emp.nombres}+${emp.apellidos}&background=27272a&color=f97316`;
                         
                         let actionsHtml = '';
                         if (viewMode === 'active') {
                             actionsHtml = `
-                                <button onclick="event.stopPropagation(); appState.editEmployee('${emp.id}')" title="Editar" class="p-2 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg"><i data-lucide="edit" class="w-4 h-4"></i></button>
-                                <button onclick="event.stopPropagation(); appState.softDeleteEmployee('${emp.id}')" title="Enviar a Papelera" class="p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-lg"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                <button onclick="event.stopPropagation(); appState.editEmployee('${emp.id}')" title="Editar" class="p-2 text-zinc-400 hover:bg-zinc-800 hover:text-orange-500 rounded-lg transition-colors"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                                <button onclick="event.stopPropagation(); appState.softDeleteEmployee('${emp.id}')" title="Enviar a Papelera" class="p-2 text-zinc-400 hover:bg-zinc-800 hover:text-red-500 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                             `;
                         } else {
                             actionsHtml = `
-                                <button onclick="event.stopPropagation(); appState.restoreEmployee('${emp.id}')" title="Restaurar" class="px-3 py-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg font-bold text-xs flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Restaurar</button>
-                                <button onclick="event.stopPropagation(); appState.hardDeleteEmployee('${emp.id}')" title="Eliminar Permanentemente" class="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-lg"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                                <button onclick="event.stopPropagation(); appState.restoreEmployee('${emp.id}')" title="Restaurar" class="px-3 py-2 text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 rounded-lg font-bold text-xs flex items-center gap-1 transition-colors"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Restaurar</button>
+                                <button onclick="event.stopPropagation(); appState.hardDeleteEmployee('${emp.id}')" title="Eliminar Permanentemente" class="p-2 text-red-500 hover:bg-red-500/20 hover:text-red-400 rounded-lg transition-colors"><i data-lucide="trash" class="w-4 h-4"></i></button>
                             `;
                         }
 
-                        return `<tr onclick="appState.viewEmployee('${emp.id}')" class="hover:bg-indigo-50/50 cursor-pointer border-b border-slate-100"><td class="p-4 flex items-center gap-3"><img src="${avatar}" class="w-10 h-10 rounded-full object-cover"><div><div class="font-bold text-slate-800">${utils.escapeHTML(emp.nombres)}</div><div class="text-xs text-slate-500 font-mono">CC: ${utils.escapeHTML(emp.cedula)}</div></div></td><td class="p-4 text-sm text-slate-600">${utils.escapeHTML(emp.telefono)}</td><td class="p-4"><div><span class="px-2 py-0.5 rounded text-[10px] font-bold ${arl.bg} ${arl.color}">${arl.status}</span></div></td><td class="p-4 text-center"><div class="flex justify-center gap-2">${emp.fileCedula ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileCedula}', 'CC.pdf')" class="p-2 bg-slate-800 text-white rounded-lg"><i data-lucide="id-card" class="w-4 h-4"></i></button>` : ''}</div></td><td class="p-4 text-right"><div class="flex justify-end gap-1">${actionsHtml}</div></td></tr>`;
+                        return `<tr onclick="appState.viewEmployee('${emp.id}')" class="hover:bg-zinc-800/50 cursor-pointer border-b border-zinc-800 transition-colors"><td class="p-4 flex items-center gap-3"><img src="${avatar}" class="w-10 h-10 rounded-full object-cover border border-zinc-700 bg-base"><div><div class="font-bold text-zinc-200">${utils.escapeHTML(emp.nombres)}</div><div class="text-xs text-zinc-500 font-mono">CC: ${utils.escapeHTML(emp.cedula)}</div></div></td><td class="p-4 text-sm text-zinc-400">${utils.escapeHTML(emp.telefono)}</td><td class="p-4"><div><span class="px-2 py-0.5 rounded text-[10px] font-bold ${arl.bg} ${arl.color} border ${arl.border}">${arl.status}</span></div></td><td class="p-4 text-center"><div class="flex justify-center gap-2">${emp.fileCedula ? `<button onclick="event.stopPropagation(); utils.downloadBase64PDF('${emp.fileCedula}', 'CC.pdf')" class="p-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-white rounded-lg transition-colors"><i data-lucide="id-card" class="w-4 h-4"></i></button>` : ''}</div></td><td class="p-4 text-right"><div class="flex justify-end gap-1">${actionsHtml}</div></td></tr>`;
                     }).join('');
                 }
                 document.getElementById('employeesTableBody').innerHTML = dHtml;
