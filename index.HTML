@@ -668,7 +668,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc, updateDoc, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // =========================================================
         // ⚠️ ATENCIÓN: CONFIGURACIÓN DE TU BASE DE DATOS FIREBASE
@@ -1055,8 +1055,7 @@
                     }
 
                     // 2. Si el usuario no existe, comprobamos si la BD está REALMENTE vacía en el servidor
-                    const usersQuery = query(collection(db, 'artifacts', appId, 'public', 'data', 'users'), limit(1));
-                    const usersSnapshot = await getDocs(usersQuery);
+                    const usersSnapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'users'));
 
                     if (usersSnapshot.empty) {
                         // Es el primer usuario real de todo el sistema
@@ -1491,39 +1490,6 @@
                 document.getElementById('employeesTableBody').innerHTML = dHtml;
                 document.getElementById('employeesMobileList').innerHTML = mHtml;
                 lucide.createIcons();
-            },
-
-            downloadExcelTemplate: () => {
-                const headers = ["Nombres", "Apellidos", "Cedula", "Cumpleanos", "EPS", "Tipo_Sangre", "Telefono", "Correo", "Direccion", "Emergencia"];
-                const wb = XLSX.utils.book_new();
-                const ws = XLSX.utils.aoa_to_sheet([headers]);
-                XLSX.utils.book_append_sheet(wb, ws, "Plantilla");
-                XLSX.writeFile(wb, "Plantilla_RRHH.xlsx");
-            },
-
-            handleExcelUpload: async (e) => {
-                const file = e.target.files[0];
-                if(!file || !appData.currentUser?.companyId) return;
-                const reader = new FileReader();
-                reader.onload = async (evt) => {
-                    const data = new Uint8Array(evt.target.result);
-                    const wb = XLSX.read(data, {type: 'array'});
-                    const json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                    let c = 0;
-                    for(const row of json) {
-                        const id = `emp_${Date.now()}_${row.Cedula}`;
-                        await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), {
-                            companyId: appData.currentUser.companyId,
-                            fotoPerfil: '', nombres: row.Nombres||'', apellidos: row.Apellidos||'', cedula: String(row.Cedula),
-                            cumpleanos: row.Cumpleanos||'', eps: row.EPS||'', tipoSangre: row.Tipo_Sangre||'',
-                            fechaArl: '', duracionArl: 'No activo', telefono: String(row.Telefono||''), correo: row.Correo||'', direccion: row.Direccion||'', contactoEmergencia: row.Emergencia||'',
-                            fileCedula: '', fileArl: '', status: 'active'
-                        });
-                        c++;
-                    }
-                    ui.toast(`Importados ${c} registros`);
-                };
-                reader.readAsArrayBuffer(file);
             }
         };
 
