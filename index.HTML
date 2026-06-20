@@ -1395,7 +1395,7 @@
                         contactoEmergencia: document.getElementById('empEmergencia').value.trim(),
                         fileCedula: bCedula || '',
                         fileArl: bArl || '',
-                        status: 'active'
+                        status: appData.employees.find(e => e.id === id)?.status || 'active'
                     };
                     await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'employees', id), data);
                     ui.closeEmployeeModal();
